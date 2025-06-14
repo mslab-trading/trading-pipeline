@@ -35,7 +35,7 @@ d_model: 128
 
 # optimization
 num_workers: 4
-train_epochs: 0
+train_epochs: 30
 batch_size: 32
 patience: 3
 learning_rate: 0.0001
