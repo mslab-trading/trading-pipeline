@@ -1,0 +1,41 @@
+split_dates: ["2018-01-01", "2020-01-01", "2021-01-01", "2022-01-01"]
+is_training: 1
+model: null
+result_file_name: "Top50"
+notes: ""
+model_name: "StockAttentioner"
+
+# data loader
+data: "Dataset_Abs"
+root_path: "./data/raw/market/"
+broker_path: "./data/raw/broker/"
+target: "etl:adj_close"
+
+loss: "ccc"
+general_data: 0
+general_data_path: "./data/raw/general/general_data.csv"
+data_info_path: "./data/raw/data_info.json"
+
+# data info
+category: "Top50"
+goal: "max_price"
+pred_len: 30
+seq_len: 60
+
+# model
+feature_dim: 7
+broker_dim: 91
+general_dim: 4
+hidden_dim: 128
+num_layers: 2
+broker: 0
+log: 0
+thresh: null
+d_model: 128
+
+# optimization
+num_workers: 4
+train_epochs: 0
+batch_size: 32
+patience: 3
+learning_rate: 0.0001

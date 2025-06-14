@@ -1,0 +1,166 @@
+import torch
+
+def masked_mse_loss(predictions, targets, mask):
+    """Masked MSE Loss to ignore NaN affected stocks"""
+    loss = (predictions - targets) ** 2  # Element-wise MSE
+    loss = loss * mask  # Apply mask
+    return loss.sum() / mask.sum()  # Normalize by valid elements
+
+def weighted_mask_mse_loss(predictions, targets, mask):
+    """Weighted Masked MSE Loss: larger targets have higher weight.
+    
+    Each squared error is weighted by the absolute value of the target.
+    The loss is computed only for valid (masked) elements and normalized 
+    by the sum of weights of those elements.
+    """
+    # Calculate element-wise squared error
+    loss = (predictions - targets) ** 2
+    
+    # Define weights based on target magnitude (using absolute value)
+    weights = abs(targets)
+    
+    # Apply the mask and weight
+    weighted_loss = loss * weights * mask
+    
+    # Normalize by the sum of weights for the valid elements.
+    normalization = (weights * mask).sum()
+    
+    return weighted_loss.sum() / normalization
+
+def thresh_mask_mse_loss(predictions, targets, mask, threshs):
+    """
+    Masked MSE Loss with threshold-based penalty.
+
+    If predictions are above thresh while targets are below, or vice versa,
+    the loss is doubled. Otherwise, normal MSE is applied.
+    
+    Parameters:
+    - predictions: Tensor of predicted values.
+    - targets: Tensor of actual values.
+    - mask: Binary tensor (0 for NaN/missing, 1 for valid data).
+    - threshs: Tensor of threshold values for each data point.
+
+    Returns:
+    - Scaled masked MSE loss.
+    """
+    loss = (predictions - targets) ** 2  # Element-wise MSE
+
+    # Identify cases where prediction and target are on opposite sides of the threshold
+    mismatch_condition = ((predictions > threshs) & (targets < threshs)) | \
+                         ((predictions < threshs) & (targets > threshs))
+
+    # Double the loss where mismatch condition is met
+    loss = torch.where(mismatch_condition, loss * 2, loss)
+
+    # Apply mask to ignore invalid data
+    loss = loss * mask  
+
+    # Normalize by the count of valid elements
+    return loss.sum() / mask.sum()
+
+
+def masked_ccc_loss(predictions, targets, mask, eps=1e-8):
+    """
+    Masked Concordance Correlation Coefficient (CCC) Loss computed across dimension N.
+    This version aggregates the loss to a scalar.
+
+    Args:
+        predictions (Tensor): Predicted values of shape (B, N).
+        targets (Tensor): Target values of shape (B, N).
+        mask (Tensor): Binary mask of shape (B, N), where 1 indicates a valid element.
+        eps (float): A small constant to prevent division by zero.
+
+    Returns:
+        Tensor: A scalar loss value.
+    """
+    # Compute the sum of valid (masked) elements for each sample.
+    sum_mask = mask.sum(dim=1)  # shape: (B,)
+
+    # Compute the masked means for predictions and targets.
+    mean_pred = (predictions * mask).sum(dim=1) / (sum_mask + eps)  # shape: (B,)
+    mean_target = (targets * mask).sum(dim=1) / (sum_mask + eps)      # shape: (B,)
+
+    # Compute the masked variances for predictions and targets.
+    var_pred = (mask * (predictions - mean_pred.unsqueeze(1)) ** 2).sum(dim=1) / (sum_mask + eps)
+    var_target = (mask * (targets - mean_target.unsqueeze(1)) ** 2).sum(dim=1) / (sum_mask + eps)
+
+    # Compute the masked covariance between predictions and targets.
+    cov = (mask * (predictions - mean_pred.unsqueeze(1)) * (targets - mean_target.unsqueeze(1))).sum(dim=1) / (sum_mask + eps)
+
+    # Compute the Concordance Correlation Coefficient (CCC) for each sample.
+    ccc = (2 * cov) / (var_pred + var_target + (mean_pred - mean_target) ** 2 + eps)
+
+    # Define the loss as 1 - CCC for each sample and average over the batch.
+    loss = 1 - ccc  # shape: (B,)
+    return loss.mean()
+
+
+def min_max_weighted_mask_mse_loss(predictions, targets, mask, eps=1e-6):
+    # squared error
+    se = (predictions - targets) ** 2
+
+
+    # get min/max over valid elements
+    t = targets * mask
+    t_min = t[mask.bool()].min()
+    t_max = t[mask.bool()].max()
+
+
+    # min–max scale into [0,1]
+    weights = (targets - t_min) / (t_max - t_min + eps)
+
+
+    # optional: shift into [1,2] so no zero-weight
+    weights = 1.0 + weights
+
+
+    # apply mask
+    weighted_se = se * weights * mask
+    norm = (weights * mask).sum()
+
+
+    return weighted_se.sum() / (norm + eps)
+
+
+def min_max_reverse_weighted_mask_mse_loss(predictions, targets, mask, eps=1e-6):
+    # this is for min_price prediction
+    # squared error
+    se = (predictions - targets) ** 2
+
+
+    # get min/max over valid elements
+    t = targets * mask
+    t_min = t[mask.bool()].min()
+    t_max = t[mask.bool()].max()
+
+
+    # min–max scale into [0,1]
+    weights = (targets - t_min) / (t_max - t_min + eps)
+    # reverse the weights
+    weights = 1.0 - weights
+
+    # optional: shift into [1,2] so no zero-weight
+    weights = 1.0 + weights
+
+
+    # apply mask
+    weighted_se = se * weights * mask
+    norm = (weights * mask).sum()
+
+
+    return weighted_se.sum() / (norm + eps)
+
+
+def exp_weighted_mask_mse_exp(predictions, targets, mask, beta=1.0, eps=1e-6):
+    se = (predictions - targets) ** 2
+
+
+    # exponential weighting
+    weights = torch.exp(beta * targets)
+
+
+    weighted_se = se * weights * mask
+    norm = (weights * mask).sum()
+
+
+    return weighted_se.sum() / (norm + eps)

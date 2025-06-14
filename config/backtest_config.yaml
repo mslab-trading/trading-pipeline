@@ -1,0 +1,4 @@
+method: TopK
+params:
+  top_k: 5
+  consecutive_days: 2
