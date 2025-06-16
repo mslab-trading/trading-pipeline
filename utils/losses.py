@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 def masked_mse_loss(predictions, targets, mask):
     """Masked MSE Loss to ignore NaN affected stocks"""
@@ -164,3 +165,58 @@ def exp_weighted_mask_mse_exp(predictions, targets, mask, beta=1.0, eps=1e-6):
 
 
     return weighted_se.sum() / (norm + eps)
+
+def masked_rank_loss(predictions: torch.Tensor,
+                     targets:     torch.Tensor,
+                     mask:        torch.Tensor,
+                     margin:      float = 1.0,
+                     eps:         float = 1e-8) -> torch.Tensor:
+    """
+    Masked Pairwise Hinge Ranking Loss across N for each B, then average over batch.
+
+    Args:
+        predictions (Tensor): shape (B, N)
+        targets     (Tensor): shape (B, N)
+        mask        (Tensor): binary mask (0/1) shape (B, N)
+        margin      (float): margin for hinge loss
+        eps         (float): small constant to avoid 0/0
+
+    Returns:
+        Tensor: scalar rank loss
+    """
+    B, N = predictions.shape
+    losses = []
+    for b in range(B):
+        # 選出 valid indices
+        valid = mask[b].bool()
+        pred_b   = predictions[b, valid]  # shape (M,)
+        targ_b   = targets[b,    valid]  # shape (M,)
+        M = pred_b.size(0)
+        # 少於兩個元素就跳過
+        if M < 2:
+            continue
+
+        # 計算 pairwise target 差值
+        # 若 targ_b[i] > targ_b[j]，則 pos_pairs[i,j]=True
+        targ_diff = targ_b.unsqueeze(1) - targ_b.unsqueeze(0)  # (M, M)
+        pos_pairs = targ_diff > eps                              # (M, M) bool
+
+        # 如果沒有正例對，也跳過
+        if not pos_pairs.any():
+            continue
+
+        # 計算 pairwise prediction 差值
+        pred_diff = pred_b.unsqueeze(1) - pred_b.unsqueeze(0)    # (M, M)
+
+        # hinge loss: max(0, margin - pred_diff) 針對正例對
+        pairwise_loss = F.relu(margin - pred_diff)               # (M, M)
+        # 只選正例對的位置
+        loss_b = pairwise_loss[pos_pairs].mean()
+        losses.append(loss_b)
+
+    if not losses:
+        # 若整批都沒有效 pair，回傳 0
+        return torch.tensor(0.0, device=predictions.device)
+
+    # 最後對每個樣本的 loss 取平均
+    return torch.stack(losses).mean()

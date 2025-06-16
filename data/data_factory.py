@@ -1,4 +1,4 @@
-from .data_loader import Dataset_Abs, Dataset_Pct, Dataset_S3E
+from .data_loader import Dataset_Abs, Dataset_Pct, Dataset_S3E, Dataset_Jerome
 
 from torch.utils.data import DataLoader
 import json
@@ -50,6 +50,11 @@ def data_provider(args, flag):
     # TODO: S3E
     elif args.data == 'Dataset_S3E':
         data_set = Dataset_S3E(
+        )
+    
+    # TODO: jerome
+    elif args.data == 'Dataset_Jerome':
+        data_set = Dataset_Jerome(
         )
         
     else:
