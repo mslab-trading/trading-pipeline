@@ -1,6 +1,8 @@
-results*
+results/*
+!results/Example_Result/
 checkpoints*
 .env
 data/raw*
 __pycache__/
 tmp/
+rename.ipynb
