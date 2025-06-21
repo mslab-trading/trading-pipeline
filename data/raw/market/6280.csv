@@ -1,1 +1,1 @@
-date,etl:adj_close,etl:adj_open,etl:adj_high,etl:adj_low,price:成交筆數,price:成交金額,foreign_investors_shareholding:全體外資及陸資持股比率
+date,etl:adj_close,etl:adj_open,etl:adj_high,etl:adj_low,price:成交筆數,price:成交金額,foreign_investors_shareholding:全體外資及陸資持股比率,RSI,SMA,MACD,CMO,ATR,BBANDS_upper,BBANDS_mid,BBANDS_lower
