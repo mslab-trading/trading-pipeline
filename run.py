@@ -47,14 +47,14 @@ from models.factory import load_main_model
 args.num_stocks = test_set.get_num_stocks()
 model = load_main_model(args, preprocessor_model=None)
 
-from trainer.stock import Trainer
+from trainer.multi_stock import MultiStockTrainer
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
 else:
     raise ValueError("No GPU available")
 
-trainer = Trainer(
+trainer = MultiStockTrainer(
     model=model,
     args=args,
     train_set=train_set,

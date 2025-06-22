@@ -23,8 +23,8 @@ broker_info_path: "./data/info/broker_info.json"
 category: "Top50"
 pred_len: 30
 seq_len: 60
-market_features: ['etl:adj_close','etl:adj_open','etl:adj_high','etl:adj_low','price:成交筆數']
-global_features: ["^VIX", "PCR_Volume"]
+market_features: Null
+global_features: Null
 broker_topK: 50
 
 concat_market_global: 1
