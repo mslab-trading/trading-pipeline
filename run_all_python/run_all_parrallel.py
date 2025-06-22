@@ -45,9 +45,9 @@ def run_split(splits, category, loss, broker, concat_market_global, base_cfg):
     cfg["result_file_name"] = f"{category}_D{cfg['data']}_L{cfg['loss']}_B{cfg['broker']}_G{cfg['concat_market_global']}"
     
     if concat_market_global:
-        cfg["feature_dim"] = 24
+        cfg["feature_dim"] = 14
     else:
-        cfg["feature_dim"] = 19
+        cfg["feature_dim"] = 9
 
     fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
     try:
