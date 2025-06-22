@@ -7,7 +7,6 @@ import json
 from tqdm import tqdm
 from trainer.multi_stock import MultiStockTrainer
 
-# TODO: S3E
 class PreprocessorTrainer(MultiStockTrainer):
     def __init__(
         self, model, args,

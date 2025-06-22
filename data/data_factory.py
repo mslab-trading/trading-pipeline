@@ -38,7 +38,6 @@ def data_provider(args, flag, isS3E=False):
     global_df = read_global_data(args.general_data_path, global_features=global_features)
     broker_df = read_broker_data(args.broker_path, stock_ids, broker_names)
 
-    # TODO: S3E Done
     if isS3E:
         data_set = Dataset_S3E(
             data=args.data,

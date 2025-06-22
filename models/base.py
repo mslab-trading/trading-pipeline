@@ -23,7 +23,6 @@ class BaseModel(nn.Module):
         else:
             self.preprocesser_model = None
     
-    # TODO: S3E Done
     def preprocess_and_combine(self, x):
         preprocessed_x = self.preprocesser_model(x)
         x = torch.cat((x, preprocessed_x), dim=-1)

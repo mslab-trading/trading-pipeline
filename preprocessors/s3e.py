@@ -64,7 +64,6 @@ class BaseTransformer(nn.Module):
         output = self.linear(output)
         return output
 
-# TODO: S3E Done
 class S3E(nn.Module):
     def __init__(self, args):
         super(S3E, self).__init__()
