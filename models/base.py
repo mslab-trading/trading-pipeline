@@ -16,14 +16,20 @@ class BaseModel(nn.Module):
             # （可選）切到 eval 模式以關閉 dropout / batchnorm 更新
             self.preprocesser_model.eval()
             
-            self.linear = None
+            self.preprocessor_linear = torch.nn.Linear(
+                self.preprocesser_model.feature_dim * 2, 
+                self.preprocesser_model.feature_dim
+            )
         else:
             self.preprocesser_model = None
     
-    # TODO: S3E
+    # TODO: S3E Done
     def preprocess_and_combine(self, x):
         preprocessed_x = self.preprocesser_model(x)
-        raise NotImplementedError("Preprocessing and combining logic is not implemented.")
+        x = torch.cat((x, preprocessed_x), dim=-1)
+        x = self.preprocessor_linear(x)
+
+        return x
     
     def forward(self, x, x_broker=None, x_general=None):
         if self.preprocesser_model:

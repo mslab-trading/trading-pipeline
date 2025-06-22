@@ -1,1 +1,7 @@
-# TODO: S3E
+# TODO: S3E Done
+# other configurations from main_training
+model_name: "S3E"
+
+# model
+base_model: "LSTM"
+

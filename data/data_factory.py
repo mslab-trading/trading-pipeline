@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import json
 import argparse
 
-def data_provider(args, flag):
+def data_provider(args, flag, isS3E=False):
     if flag == 'test':
         shuffle_flag = False
         drop_last = False
@@ -38,7 +38,22 @@ def data_provider(args, flag):
     global_df = read_global_data(args.general_data_path, global_features=global_features)
     broker_df = read_broker_data(args.broker_path, stock_ids, broker_names)
 
-    if args.data == 'Dataset_Abs':
+    # TODO: S3E Done
+    if isS3E:
+        data_set = Dataset_S3E(
+            data=args.data,
+            market_df=market_df,
+            broker_df=broker_df,
+            global_df=global_df,
+            size=[args.seq_len, args.pred_len],
+            flag=flag, 
+            target=args.target,
+            split_dates=args.split_dates,
+            goal=args.goal,
+            log=args.log,
+            thresh=args.thresh,
+        )
+    elif args.data == 'Dataset_Abs':
         data_set = Dataset_Abs(
             market_df=market_df,
             broker_df=broker_df,
@@ -63,10 +78,6 @@ def data_provider(args, flag):
             goal=args.goal,
             log=args.log,
             thresh=args.thresh,
-        )
-    # TODO: S3E
-    elif args.data == 'Dataset_S3E':
-        data_set = Dataset_S3E(
         )
     
     # TODO: jerome

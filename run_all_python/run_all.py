@@ -20,8 +20,11 @@ categories = ['Top50', 'Top100', "Selected", "SelectedVer2"]
 # [ 'Top50', 'Top100', 'BioMedTSE', 'ChemicalTSE', 'ElectronicComponentTSE', 'FinanceTSE', 'OptoTSE', "SemiconductorTSE",
 #                   "Selected", "SelectedVer2", "BuildingTSE", "CarTSE", "ClothesTSE", "NetworkTSE", "MetalTSE", "EETSE", "ComputerTSE"]
 # 载入 base config
-with open("config/training_config.yaml") as f:
+with open("config/main_training.yaml") as f:
     base_cfg = yaml.safe_load(f)
+
+with open("config/preprocessor_config.yaml") as f:
+    base_preprocessor_cfg = yaml.safe_load(f)
 
 for cat in categories:
     for splits in split_sets:
@@ -32,18 +35,27 @@ for cat in categories:
                 cfg["split_dates"] = splits
                 cfg["category"]    = cat
                 cfg["result_file_name"] = f"{cat}_{cfg['data']}"
+                
+                preprocessor_config = cfg.copy()
+                preprocessor_config.update(base_preprocessor_cfg)
+                preprocessor_config["result_file_name"] = f"{cat}_{preprocessor_config['data']}"
 
                 # 写入临时文件
                 fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
                 with os.fdopen(fd, "w") as tmpf:
                     yaml.safe_dump(cfg, tmpf)
 
+                fd, tmp_preprocessor_path = tempfile.mkstemp(suffix=".yaml")
+                with os.fdopen(fd, "w") as tmpf:
+                    yaml.safe_dump(preprocessor_config, tmpf)
+
                 print(f">>> Running splits={splits}, category={cat}")
                 
                 env = os.environ.copy()
                 env["CUDA_VISIBLE_DEVICES"] = "2"
                 subprocess.run(
-                    ["python", "run.py", "--config", tmp_path],
+                    ["python", "run.py", "--config", tmp_path,
+                     "--preprocessor_config", tmp_preprocessor_path],
                     check=True,
                     env=env,
                 )

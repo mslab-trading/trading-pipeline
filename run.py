@@ -14,9 +14,13 @@ import yaml
 from types import SimpleNamespace
 import argparse
 
-def load_config(path):
-    with open(path, "r") as f:
-        cfg_dict = yaml.safe_load(f)
+def load_config(*paths):
+    cfg_dict = {}
+    for path in paths:
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Config file {path} does not exist.")
+        with open(path, "r") as f:
+            cfg_dict.update(yaml.safe_load(f))
     return SimpleNamespace(**cfg_dict)
 
 # ←――――――――――――――――――――――――――――――――――――
@@ -24,6 +28,8 @@ def load_config(path):
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', '-c', type=str, required=True,
                     help="Path to the YAML config file")
+parser.add_argument('--preprocessor_config', '-p', type=str, default=None,
+                    help="Path to the preprocessor YAML config file")
 cli_args = parser.parse_args()
 
 # 2) 用參數取代硬編碼
@@ -31,6 +37,46 @@ args = load_config(cli_args.config)
 print(f"[INFO] Loaded config from {cli_args.config}")
 print(f"[INFO] Running with args: {args}")
 # ―――――――――――――――――――――――――――――――――――――→
+
+# 3) 如果有 preprocessor_config，則載入預處理器的配置
+preprocessor_model = None
+preprocessor_args = load_config(cli_args.config, cli_args.preprocessor_config) if cli_args.preprocessor_config else None
+if preprocessor_args:
+    print(f"[INFO] Loaded preprocessor config from {cli_args.preprocessor_config}")
+    print(f"[INFO] Running with preprocessor args: {preprocessor_args}")
+
+    from preprocessors.factory import load_preprocessor_model
+    preprocessor_model = load_preprocessor_model(preprocessor_args)
+
+    from data.data_factory import data_provider
+    preprocessor_train_set, preprocessor_train_loader = data_provider(preprocessor_args, 'train', isS3E=True)
+    preprocessor_val_set, preprocessor_val_loader = data_provider(preprocessor_args, 'val', isS3E=True)
+    preprocessor_test_set, preprocessor_test_loader = data_provider(preprocessor_args, 'test', isS3E=True)
+    preprocessor_train_val_set, preprocessor_train_val_loader = data_provider(preprocessor_args, 'train_val', isS3E=True)
+
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        raise ValueError("No GPU available")
+
+    from trainer.preprocessor import PreprocessorTrainer
+    preprocessor_trainer = PreprocessorTrainer(
+        model=preprocessor_model,
+        args=preprocessor_args,
+        train_set=preprocessor_train_set,
+        val_set=preprocessor_train_set,
+        test_set=preprocessor_test_set,
+        train_val_set=preprocessor_train_val_set,
+        train_loader=preprocessor_train_loader,
+        val_loader=preprocessor_val_loader,
+        test_loader=preprocessor_test_loader,
+        train_val_loader=preprocessor_train_val_loader,
+        device=device
+    )
+
+    best_epoch = preprocessor_trainer.train_with_early_stop()
+    preprocessor_trainer.train_final(best_epoch)
+
 
 from data.data_factory import data_provider
 
@@ -45,7 +91,7 @@ test_set[0]
 from models.factory import load_main_model
 
 args.num_stocks = test_set.get_num_stocks()
-model = load_main_model(args, preprocessor_model=None)
+model = load_main_model(args, preprocessor_model=preprocessor_model)
 
 from trainer.multi_stock import MultiStockTrainer
 

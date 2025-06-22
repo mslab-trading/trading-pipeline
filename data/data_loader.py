@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from typing import Any
 from collections import defaultdict
 import json
+import random
 
 import warnings
 warnings.simplefilter("ignore", RuntimeWarning)
@@ -368,6 +369,9 @@ class Dataset_Abs(Dataset_Basic):
         elif self.goal == 'mean_price':
             # Mean over the prediction window for each stock
             Y = close_pred_df.mean(skipna=True).values  # shape: (N_stocks,)
+        elif self.goal == 'last_price':
+            # Last value in the prediction window for each stock
+            Y = close_pred_df.iloc[-1].values
         else:
             raise ValueError(f"goal = {self.goal} not implemented yet, only max_price, min_price, mean_price are supported")
 
@@ -576,6 +580,9 @@ class Dataset_Pct(Dataset_Basic):
         elif self.goal == 'mean_roi':
             # Mean over the prediction window for each stock
             Y = close_pred_df.mean(skipna=True).values/first_close_pred - 1# shape: (N_stocks,)
+        elif self.goal == 'last_roi':
+            # Last value of the target column in the prediction window for each stock
+            Y = close_pred_df.iloc[-1].values/first_close_pred - 1
         else:
             raise ValueError(f"goal = {self.goal} not implemented yet, only max_roi, min_roi, mean_roi are supported")
         
@@ -605,10 +612,55 @@ class Dataset_Pct(Dataset_Basic):
     def get_pct(self, pred_y, index):
         return pred_y 
 
-# TODO: S3E
+# TODO: S3E Done
 class Dataset_S3E(Dataset_Basic):
-    def __init__(self):
-        pass
+    def __init__(self, *args, data="Dataset_Abs", **kwargs):
+        # work like data_factory
+        if data == "Dataset_Pct":
+            self.dataset = Dataset_Pct(*args, **kwargs)
+        elif data == "Dataset_Abs":
+            self.dataset = Dataset_Abs(*args, **kwargs)
+        else:
+            raise ValueError(f"Unknown data type: {data}. Must be 'Dataset_Pct' or 'Dataset_Abs' in Dataset_S3E.")
+
+    def __len__(self):
+        """
+        Return the length of the dataset.
+        """
+        return len(self.dataset)
+
+    def __getitem__(self, index):
+        """
+        Retrieve a single sample from the dataset.
+        For the given 'index', get the sequence and prediction DataFrames, scale them,
+        and then extract the label 'Y' based on 'self.goal':
+          - 'max_price': maximum of the target column over the prediction window
+          - 'last_price': last value of the target column in the prediction window
+        Returns
+        -------
+        X : np.ndarray
+            A 3D array of shape (N, T, F) representing 1st sequence data.
+        X2 : np.ndarray
+            A 3D array of shape (N, T, F) representing 2nd sequence data.
+        Y : np.ndarray
+            1D array of length N with the target value, which is the difference between the last price in X2 and the last price in X.
+        index : int
+            The same index provided, for tracking purposes.
+        -----------
+        """
+        X, X_broker, X_global, Y, index = self.dataset[index] # 1st sequence data
+        index2 = random.choice([i for i in range(len(self.dataset)) if i != index])
+        X2, X2_broker, X2_global, Y2, _ = self.dataset[index2]  # 2nd sequence data
+
+        Y = Y - Y2  # Target value is the difference between the last price in X2 and the last price in X
+
+        return X, X_broker, X_global, X2, X2_broker, X2_global, Y, index
+
+    def inverse(self, pred_y, index):
+        return pred_y
+
+    def get_pct(self, pred_y, index):
+        return pred_y
 
 # TODO: Jerome
 class Dataset_Jerome(Dataset_Basic):
