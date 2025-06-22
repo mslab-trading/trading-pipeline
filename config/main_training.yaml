@@ -32,7 +32,7 @@ concat_market_global: 1
 # model
 feature_dim: 24
 broker_dim: 50
-general_dim: 4
+general_dim: 5
 hidden_dim: 128
 num_layers: 2
 broker: 1

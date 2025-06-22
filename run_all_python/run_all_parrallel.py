@@ -6,10 +6,11 @@ import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from itertools import product
+import copy
 
 # 全局指定給子進程的 GPU（也可以自行改為輪轉分配）
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
-MAX_WORKERS = 6
+MAX_WORKERS = 1
 
 # 4 種 split 設定
 split_sets = [
@@ -35,13 +36,18 @@ def run_split(splits, category, loss, broker, concat_market_global, base_cfg):
     如失敗則 sleep 60 秒後重試，直到成功為止。
     """
     # 準備 config file
-    cfg = base_cfg.copy()
+    cfg = copy.deepcopy(base_cfg)
     cfg["split_dates"]      = splits
     cfg["category"]         = category
     cfg['loss']            = loss
     cfg["broker"]          = broker
     cfg["concat_market_global"] = concat_market_global
     cfg["result_file_name"] = f"{category}_D{cfg['data']}_L{cfg['loss']}_B{cfg['broker']}_G{cfg['concat_market_global']}"
+    
+    if concat_market_global:
+        cfg["feature_dim"] = 24
+    else:
+        cfg["feature_dim"] = 19
 
     fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
     try:
