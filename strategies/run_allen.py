@@ -5,11 +5,11 @@ import pandas as pd
 import json
 import yaml
 import os
-import generate_signal
-from backtest.allen import *
 import numpy as np
-from utils.analysis import print_result
-from utils.data_processor import filter_bad_targets, get_price_df
+from strategies import generate_signal
+from strategies.backtest.allen import *
+from strategies.utils.analysis import print_result
+from strategies.utils.data_processor import filter_bad_targets, get_price_df
 
 def get_allen_result(cfg: dict, result_dir: str):
     buy_dfs, sell_dfs = pd.DataFrame(), pd.DataFrame()

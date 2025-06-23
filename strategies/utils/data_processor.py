@@ -1,7 +1,7 @@
 from finlab import data
 from pandas import MultiIndex
 import pandas as pd
-from backtest.allen import *
+from strategies.backtest.allen import *
 
 #  Input: Target = [stock ids]
 # Output: Target = [stock ids] but filtered out those we do not have their data.
