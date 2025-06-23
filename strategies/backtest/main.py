@@ -1,2 +1,3 @@
-from strategies.backtest.pyrimid import PyrimindBacktest
+from strategies.backtest.pyramid import PyramidBacktest
+
 
