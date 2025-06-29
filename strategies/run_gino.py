@@ -20,13 +20,30 @@ def get_gino_signals(cfg: dict, result_dir: str):
         else:
             tmp = pd.read_csv(f'{result_dir}/{dir}/test/pred_pct.csv', index_col=0)
             pred_df = pd.concat([pred_df, tmp])
+    pred_df = pred_df.groupby(['date']).tail(1)
     pred_df = pred_df.sort_index()
     buy_signals = generate_signal_topK.generate_buy_signal(pred_df, 'gino')
     
     return {
         'buy_signals': buy_signals,
+        'sell_signals': pd.DataFrame(index=buy_signals.index, columns=buy_signals.columns, data=0),
     }
-    
+
+def get_benchmark_result(result_dir: str, start_date: pd.DatetimeIndex, end_date: pd.DatetimeIndex):
+    import os
+    import finlab
+    from finlab import data
+    finlab.login('ntSS3778pZi2FfkeYxXP0p+S0iI4AggkcphAUxh/lTVrWqT2FreKQsDkTA92CM7d#vip_m')
+    dir = os.listdir(result_dir)[0]
+    pred_df = pd.read_csv(os.path.join(result_dir, dir, "test/pred_pct.csv"), index_col="date")
+    close_price = data.get('price:收盤價')[pred_df.columns]
+    close_price = close_price[(close_price.index >= start_date) & (close_price.index <= end_date)]
+    for col in close_price.columns:
+        close_price[col] = close_price[col] / close_price[col].iloc[0]
+    benchmark_returns = close_price.mean(axis=1)
+    benchmark_result = Result(benchmark_returns, None, None)
+    return benchmark_result
+
 def get_gino_result(cfg: dict, result_dir: str):
     signals = get_gino_signals(cfg, result_dir)
     buy_dfs = signals['buy_signals']
@@ -48,8 +65,11 @@ def get_gino_result(cfg: dict, result_dir: str):
     
     backtest = PyramidBacktest(MyStrategy, price_df, commission=cfg["commission"], cash=1e9)
     result   = backtest.run(buy_signal=buy_dfs)
+    benchmark_result = get_benchmark_result(result_dir, buy_dfs.index[0], buy_dfs.index[-1])
+    
     return {
         'model': result,
+        'benchmark': benchmark_result
     }
 
 if __name__ == "__main__":
