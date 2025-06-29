@@ -23,7 +23,7 @@ categories = ['Top50', 'Top100', "Selected", "SelectedVer2"]
 with open("config/main_training.yaml") as f:
     base_cfg = yaml.safe_load(f)
 
-with open("config/preprocessor_config.yaml") as f:
+with open("config/preprocessor_training.yaml") as f:
     base_preprocessor_cfg = yaml.safe_load(f)
 
 for cat in categories:
@@ -55,7 +55,9 @@ for cat in categories:
                 env["CUDA_VISIBLE_DEVICES"] = "2"
                 subprocess.run(
                     ["python", "run.py", "--config", tmp_path,
-                     "--preprocessor_config", tmp_preprocessor_path],
+                     # 如果需要 preprocessor_config，可以取消注釋
+                     # "--preprocessor_config", tmp_preprocessor_path
+                    ],
                     check=True,
                     env=env,
                 )

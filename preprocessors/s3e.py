@@ -36,17 +36,18 @@ class BaseLSTM(nn.Module):
 class BaseTransformer(nn.Module):
     def __init__(self, args):
         super(BaseTransformer, self).__init__()
-        self.feature_mixer = nn.Linear(args.feature_dim, args.feature_dim)
+        self.d_model = args.d_model
+        self.feature_mixer = nn.Linear(args.feature_dim, self.d_model)
         self.model = nn.TransformerEncoder(
             nn.TransformerEncoderLayer(
-                d_model=args.feature_dim,
+                d_model=self.d_model,
                 nhead=args.nhead,
                 dim_feedforward=args.hidden_dim,
                 dropout=args.dropout
             ),
             num_layers=args.num_layers
         )
-        self.linear = nn.Linear(args.feature_dim, args.feature_dim)
+        self.linear = nn.Linear(self.d_model, args.feature_dim)
     
     def forward(self, x):
         # feature mixer
@@ -54,13 +55,13 @@ class BaseTransformer(nn.Module):
         batch_size, num_stocks, seq_len, feature_dim = x.shape
         x = x.view(batch_size * num_stocks * seq_len, feature_dim)
         x = self.feature_mixer(x)
-        x = x.view(batch_size, num_stocks, seq_len, feature_dim)
+        x = x.view(batch_size, num_stocks, seq_len, self.d_model)
 
         # Transformer encoder
         x = x.contiguous()
-        x = x.view(batch_size * num_stocks, seq_len, feature_dim)
+        x = x.view(batch_size * num_stocks, seq_len, self.d_model)
         output = self.model(x)
-        output = output.view(batch_size, num_stocks, seq_len, feature_dim)
+        output = output.view(batch_size, num_stocks, seq_len, self.d_model)
         output = self.linear(output)
         return output
 

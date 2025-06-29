@@ -76,6 +76,7 @@ if preprocessor_args:
 
     best_epoch = preprocessor_trainer.train_with_early_stop()
     preprocessor_trainer.train_final(best_epoch)
+    preprocessor_trainer.save_args(f"results/{preprocessor_args.result_file_name}")
 
 
 from data.data_factory import data_provider

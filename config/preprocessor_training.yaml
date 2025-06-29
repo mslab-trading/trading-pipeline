@@ -2,5 +2,7 @@
 model_name: "S3E"
 
 # model
-base_model: "LSTM"
-
+base_model: "Transformer"
+nhead: 8
+d_model: 128
+dropout: 0.1

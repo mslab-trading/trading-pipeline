@@ -158,6 +158,14 @@ class PreprocessorTrainer(MultiStockTrainer):
         self.model.load_state_dict(torch.load(path))
         self.model.to(self.device)
 
+    def save_args(self, path):
+        """
+        儲存 args 為 JSON 檔案。
+        """
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(os.path.join(path, "preprocessor_args.json"), "w") as f:
+            json.dump(self.args.__dict__, f, indent=4)
+
     def _evaluate_and_save(
         self,
         split_name: str,
@@ -171,7 +179,7 @@ class PreprocessorTrainer(MultiStockTrainer):
         os.makedirs(split_dir, exist_ok=True)
 
         # 1) 儲存 args.json
-        with open(os.path.join(split_dir, "args.json"), "w") as f:
+        with open(os.path.join(split_dir, "preprocessor_args.json"), "w") as f:
             json.dump(self.args.__dict__, f, indent=4)
 
         # 2) 預測並收集
