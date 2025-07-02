@@ -17,8 +17,8 @@ def get_allen_signals(cfg: dict, result_dir: str):
     for dir in os.listdir(result_dir):
         pred_df = pd.read_csv(os.path.join(result_dir, dir, "test/pred_pct.csv"), index_col="date")
         val_df = pd.read_csv(os.path.join(result_dir, dir, "train_val/pred_pct.csv"), index_col="date")
-        buy_dfs  = pd.concat([ buy_dfs, generate_signal.generate_buy_signal(pred_df, "allen", val_df)] , axis=0)
-        sell_dfs = pd.concat([sell_dfs, generate_signal.generate_sell_signal(pred_df, "allen", val_df)], axis=0)
+        buy_dfs  = pd.concat([ buy_dfs, generate_signal.generate_buy_signal(cfg, pred_df, "allen", val_df)] , axis=0)
+        sell_dfs = pd.concat([sell_dfs, generate_signal.generate_sell_signal(cfg, pred_df, "allen", val_df)], axis=0)
     buy_dfs  =  buy_dfs.sort_index()
     sell_dfs = sell_dfs.sort_index()
     

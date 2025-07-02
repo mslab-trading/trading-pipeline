@@ -41,7 +41,7 @@ def get_gino_result(cfg: dict, result_dir: str):
     price_df = price_df[(price_df.index >= buy_dfs.index[0]) & (price_df.index <= buy_dfs.index[-1])]
     
     class MyStrategy(Strategy):
-        def __init__(self, max_positions=40, max_holding_period=30, cash=1e9):
+        def __init__(self, max_positions=cfg["max_positions"], max_holding_period=cfg["max_holding_period"], cash=1e9):
             super().__init__()
             self.max_positions = max_positions
             self.max_holding_period = max_holding_period
