@@ -1,4 +1,6 @@
 results/*
+results*
+data/preprocessing
 !results/Example_Result/
 checkpoints*
 .env
