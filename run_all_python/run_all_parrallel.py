@@ -9,8 +9,8 @@ from itertools import product
 import copy
 
 # 全局指定給子進程的 GPU（也可以自行改為輪轉分配）
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
-MAX_WORKERS = 1
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+MAX_WORKERS = 8
 
 # 4 種 split 設定
 split_sets = [
@@ -25,6 +25,8 @@ categories = [
     "Selected","SelectedVer2", 'Top50','Top100','ChemicalTSE',
     'FinanceTSE','OptoTSE',"CarTSE","NetworkTSE", "EETSE","ComputerTSE"
 ]
+
+categories = ['Top100']
 
 # 載入 base config once
 with open("config/main_training.yaml") as f:
@@ -45,9 +47,9 @@ def run_split(splits, category, loss, broker, concat_market_global, base_cfg):
     cfg["result_file_name"] = f"{category}_D{cfg['data']}_L{cfg['loss']}_B{cfg['broker']}_G{cfg['concat_market_global']}"
     
     if concat_market_global:
-        cfg["feature_dim"] = 14
+        cfg["feature_dim"] = 25
     else:
-        cfg["feature_dim"] = 9
+        cfg["feature_dim"] = 19
 
     fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
     try:
@@ -89,9 +91,9 @@ if __name__ == "__main__":
         futures = []
         for category, loss, broker, concat_market_global in product(
             categories,
-            ["mse", "ccc"],
-            [0, 1],
-            [0, 1]
+            ["ccc"],
+            [1],
+            [0]
         ):
             print(f"\n=== Starting category: {category} ===")
             for splits in split_sets:

@@ -23,14 +23,14 @@ broker_info_path: "./data/info/broker_info.json"
 category: "Top50"
 pred_len: 30
 seq_len: 60
-market_features: ['etl:adj_close', 'etl:adj_open', 'etl:adj_high', 'etl:adj_low', 'price:成交金額', 'foreign_investors_shareholding:全體外資及陸資持股比率', 'BBANDS_upper', 'BBANDS_mid', 'BBANDS_lower']
-global_features: ['^VIX', '^IXIC', '^GSPC', '^TWII', 'PCR_Volume']
+market_features: null
+global_features: null
 broker_topK: 50
 
-concat_market_global: 1
+concat_market_global: 0
 
 # model
-feature_dim: 9
+feature_dim: 19
 broker_dim: 50
 general_dim: 5
 hidden_dim: 128

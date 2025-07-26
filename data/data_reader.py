@@ -93,6 +93,7 @@ def _load_and_combine_csvs(
         dfs.append(df)
 
     if not dfs:
+        breakpoint()
         raise ValueError(f"No CSVs loaded from {root} for stock_ids {stock_ids}")
     return pd.concat(dfs, ignore_index=True)
 
