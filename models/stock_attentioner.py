@@ -107,9 +107,10 @@ class SeriesDecomp(nn.Module):
 
 class LSTMEncoder(nn.Module):
     """Encodes the time series data for each stock into a fixed-length embedding."""
-    def __init__(self, feature_dim, seq_len, hidden_dim, num_layers=1, bidirectional=False):
+    def __init__(self, feature_dim, seq_len, hidden_dim, use_fft, num_layers=1, bidirectional=False):
         super(LSTMEncoder, self).__init__()
-        self.feature_mixer = nn.Linear(feature_dim, feature_dim)
+        self.use_fft = use_fft
+        self.feature_mixer = nn.Linear(feature_dim * 2, feature_dim) if self.use_fft else nn.Linear(feature_dim, feature_dim)
         self.lstm = nn.LSTM(feature_dim, hidden_dim, num_layers, batch_first=True, bidirectional=bidirectional)
         # self.encoder = iTransformer_encoder(seq_len, hidden_dim)
 
@@ -118,6 +119,17 @@ class LSTMEncoder(nn.Module):
         x = x.contiguous() 
         batch_size, num_stocks, seq_len, feature_dim = x.shape
         x = x.view(batch_size * num_stocks * seq_len, feature_dim)
+
+        if self.use_fft:
+            # Apply FFT along the last dimension (time dimension)
+            x = x.view(batch_size * num_stocks, seq_len, feature_dim)
+            x = torch.fft.fft(x, dim=-1)
+            x1 = x.real
+            x2 = x.imag
+            x = torch.cat([x1, x2], dim=-1)  # Concatenate real and imaginary parts
+            x = x.view(batch_size * num_stocks, seq_len, feature_dim * 2)
+
+        # feature mixing
         x = self.feature_mixer(x)
         x = x.view(batch_size, num_stocks, seq_len, feature_dim)
         
@@ -131,7 +143,7 @@ class LSTMEncoder(nn.Module):
 
 class StockEncoderLSTM(nn.Module):
     """Encodes the stock data into a fixed-length embedding."""
-    def __init__(self, feature_dim, seq_len, hidden_dim, num_layers=1, bidirectional=False):
+    def __init__(self, feature_dim, seq_len, hidden_dim, use_fft, num_layers=1, bidirectional=False):
         super(StockEncoderLSTM, self).__init__()
         
         self.decomposition = SeriesDecomp()
@@ -140,6 +152,7 @@ class StockEncoderLSTM(nn.Module):
             feature_dim=feature_dim,
             seq_len=seq_len,
             hidden_dim=hidden_dim,
+            use_fft=use_fft,
             num_layers=num_layers,
             bidirectional=bidirectional
         )
@@ -147,6 +160,7 @@ class StockEncoderLSTM(nn.Module):
             feature_dim=feature_dim,
             seq_len=seq_len,
             hidden_dim=hidden_dim,
+            use_fft=use_fft,
             num_layers=num_layers,
             bidirectional=bidirectional
         )
@@ -213,6 +227,7 @@ class StockAttentioner(nn.Module):
             feature_dim=args.feature_dim,
             seq_len=args.seq_len,
             hidden_dim=args.hidden_dim,
+            use_fft=args.use_fft,
             num_layers=1,
             bidirectional=False
         )
