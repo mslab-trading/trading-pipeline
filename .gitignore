@@ -2,6 +2,7 @@ results/*
 results*
 data/preprocessing
 !results/Example_Result/
+!results/Example_Result_2025/
 checkpoints*
 .env
 data/raw*

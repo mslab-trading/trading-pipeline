@@ -1,9 +1,11 @@
 from .data_loader import Dataset_Abs, Dataset_Pct, Dataset_S3E, Dataset_Jerome, Dataset_Berlin
 from .data_reader import read_market_data, read_broker_data, read_global_data
 
+import pandas as pd
 from torch.utils.data import DataLoader
 import json
 import argparse
+from pandas.tseries.offsets import BDay
 
 def data_provider(args, flag, isS3E=False):
     if flag == 'test':
@@ -37,6 +39,21 @@ def data_provider(args, flag, isS3E=False):
 
     global_df = read_global_data(args.general_data_path, global_features=global_features)
     broker_df = read_broker_data(args.broker_path, stock_ids, broker_names)
+
+    def fill_extended_days(market_df):
+        # append pred_len days on market_df to avoid out-of-index
+        start_date = market_df['date'].max() + pd.tseries.offsets.BDay(1)
+        end_date = market_df['date'].max() + pd.tseries.offsets.BDay(args.pred_len + 15) # extra 15 business days for safety
+        extended_dates = pd.date_range(start=start_date, end=end_date, freq='B')
+        extended_date_df = pd.DataFrame(extended_dates, columns=['date'])
+        extended_stock_ids = market_df['stock_id'].unique()
+        extended_stock_df = pd.DataFrame(extended_stock_ids, columns=['stock_id'])
+        extended_df = pd.merge(extended_date_df, extended_stock_df, how='cross')
+        market_df = pd.concat([market_df, extended_df], ignore_index=True)
+        market_df = market_df.sort_values(by=['stock_id', 'date']).fillna(1.0).reset_index(drop=True)
+        return market_df
+    
+    market_df = fill_extended_days(market_df)
 
     if isS3E:
         data_set = Dataset_S3E(

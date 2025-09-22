@@ -46,7 +46,7 @@ class Dataset_Basic(Dataset):
         market_df = market_df[market_df["stock_id"].isin(self.stock_ids)].copy()
         broker_df = broker_df[broker_df["stock_id"].isin(self.stock_ids)].copy()
 
-        self.all_dates = market_df["date"].drop_duplicates().tolist()
+        self.all_dates = sorted(market_df["date"].drop_duplicates().tolist())
         self.split_dates = self.adjust_split_dates(split_dates)
         
         # Extract data based on the flag
