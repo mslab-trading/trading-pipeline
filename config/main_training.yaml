@@ -39,7 +39,7 @@ broker: 1
 log: 0
 thresh: null
 d_model: 128
-use_fft: 1
+use_fft: 0
 
 # optimization
 num_workers: 4
