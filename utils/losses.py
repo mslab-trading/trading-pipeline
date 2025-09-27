@@ -195,6 +195,14 @@ def masked_rank_loss(predictions: torch.Tensor,
         # 少於兩個元素就跳過
         if M < 2:
             continue
+        
+        t_min, t_max = targ_b.min(), targ_b.max()
+        if (t_max - t_min) > eps:
+            targ_b = (targ_b - t_min) / (t_max - t_min)
+            pred_b = (pred_b - t_min) / (t_max - t_min)
+        else:
+            # 若全部 target 相同，跳過
+            continue
 
         # 計算 pairwise target 差值
         # 若 targ_b[i] > targ_b[j]，則 pos_pairs[i,j]=True
@@ -207,16 +215,17 @@ def masked_rank_loss(predictions: torch.Tensor,
 
         # 計算 pairwise prediction 差值
         pred_diff = pred_b.unsqueeze(1) - pred_b.unsqueeze(0)    # (M, M)
-
+        
+        weights = torch.relu(targ_diff)
         # hinge loss: max(0, margin - pred_diff) 針對正例對
-        pairwise_loss = F.relu(margin - pred_diff)               # (M, M)
+        pairwise_loss = F.relu(margin - pred_diff) * weights               # (M, M)
         # 只選正例對的位置
-        loss_b = pairwise_loss[pos_pairs].mean()
+        loss_b = pairwise_loss[pos_pairs].sum() / (weights[pos_pairs].sum() + eps)
         losses.append(loss_b)
 
     if not losses:
         # 若整批都沒有效 pair，回傳 0
-        return torch.tensor(0.0, device=predictions.device)
+        return torch.tensor(0.0, device=predictions.device, requires_grad=True)
 
     # 最後對每個樣本的 loss 取平均
     return torch.stack(losses).mean()
