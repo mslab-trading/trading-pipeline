@@ -30,9 +30,15 @@ def get_gino_signals(cfg: dict, result_dir: str):
         'sell_signals': pd.DataFrame(index=buy_signals.index, columns=buy_signals.columns, data=0),
     }
 
-def get_gino_result(cfg: dict, result_dir: str):
+def get_gino_result(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
     signals = get_gino_signals(cfg, result_dir)
     buy_dfs = signals['buy_signals']
+
+    if start_date is not None:
+        buy_dfs = buy_dfs[buy_dfs.index >= start_date.strftime("%Y-%m-%d")]
+    if end_date is not None:
+        buy_dfs = buy_dfs[buy_dfs.index <= end_date.strftime("%Y-%m-%d")]
+    buy_dfs = buy_dfs.sort_index()
 
     Target = filter_bad_targets(list(buy_dfs.columns), cfg)
         

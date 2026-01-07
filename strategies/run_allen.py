@@ -12,13 +12,21 @@ from strategies.utils.analysis import print_result
 from strategies.utils.data_processor import filter_bad_targets, get_price_df
 from strategies.utils.analysis import get_equal_weight_baseline_result
 
-def get_allen_signals(cfg: dict, result_dir: str):
+def get_allen_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
     buy_dfs, sell_dfs = pd.DataFrame(), pd.DataFrame()
     for dir in os.listdir(result_dir):
         pred_df = pd.read_csv(os.path.join(result_dir, dir, "test/pred_pct.csv"), index_col="date")
         val_df = pd.read_csv(os.path.join(result_dir, dir, "train_val/pred_pct.csv"), index_col="date")
         buy_dfs  = pd.concat([ buy_dfs, generate_signal.generate_buy_signal(cfg, pred_df, "allen", val_df)] , axis=0)
         sell_dfs = pd.concat([sell_dfs, generate_signal.generate_sell_signal(cfg, pred_df, "allen", val_df)], axis=0)
+    
+    if start_date is not None:
+        buy_dfs  = buy_dfs[ buy_dfs.index >= start_date.strftime("%Y-%m-%d")]
+        sell_dfs = sell_dfs[sell_dfs.index >= start_date.strftime("%Y-%m-%d")]
+    if end_date is not None:
+        buy_dfs  = buy_dfs[ buy_dfs.index <= end_date.strftime("%Y-%m-%d")]
+        sell_dfs = sell_dfs[sell_dfs.index <= end_date.strftime("%Y-%m-%d")]
+    
     buy_dfs  =  buy_dfs.sort_index()
     sell_dfs = sell_dfs.sort_index()
     
@@ -33,8 +41,8 @@ def get_allen_signals(cfg: dict, result_dir: str):
         'sell_signals': sell_dfs,
     }
     
-def get_allen_result(cfg: dict, result_dir: str):
-    signals = get_allen_signals(cfg, result_dir)
+def get_allen_result(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
+    signals = get_allen_signals(cfg, result_dir, start_date=start_date, end_date=end_date)
     buy_dfs = signals['buy_signals']
     sell_dfs = signals['sell_signals']
 

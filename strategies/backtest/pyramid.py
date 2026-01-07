@@ -106,6 +106,7 @@ class Result:
     returns: pd.Series
     trades: List[Trade]
     open_positions: List[Position]
+    invest_ratio: pd.Series
 
 class Strategy():
     """
@@ -313,6 +314,7 @@ class Strategy():
         self.index: List[datetime] = []
 
         self.returns: List[float] = []
+        self.invest_ratio: List[float] = []
         self.trades: List[Trade] = []
         self.open_positions: List[Position] = []
 
@@ -444,11 +446,13 @@ class Strategy():
 
             self.assets_value = sum(position.current_value for position in self.open_positions)
             self.returns.append(self.cash + self.assets_value)
+            self.invest_ratio.append(self.assets_value / (self.cash + self.assets_value) if (self.cash + self.assets_value) > 0 else 0)
 
         return Result(
             returns=pd.Series(index=self.index, data=self.returns, dtype=float),
             trades=self.trades,
-            open_positions=self.open_positions
+            open_positions=self.open_positions,
+            invest_ratio=pd.Series(index=self.index, data=self.invest_ratio, dtype=float)
         )
 
 class PyramidBacktest:
