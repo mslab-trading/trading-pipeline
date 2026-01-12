@@ -11,20 +11,18 @@ from evaluation.stats import sharpe, sharpe_0050
 finlab.login("ntSS3778pZi2FfkeYxXP0p+S0iI4AggkcphAUxh/lTVrWqT2FreKQsDkTA92CM7d#vip_m")
 
 
-def generate_daily_signal(
-    cfg, pred_df: pd.DataFrame, val_df: pd.DataFrame, k: int, cash_quantile: float
-):
-    cash_pct = val_df.melt().value.quantile(cash_quantile)
+def generate_daily_signal(cfg, pred_df: pd.DataFrame, val_df: pd.DataFrame):
+    cash_pct = val_df.melt().value.quantile(cfg["cash_quantile"])
     pred_df["cash"] = cash_pct
     signals = pd.DataFrame(index=pred_df.index, columns=pred_df.columns, data=0)
 
     prev_row = None
     for i, (date, row) in enumerate(pred_df.iterrows()):
         row.fillna(0, inplace=True)
-        if i < k:
+        if i < cfg["k"]:
             row = pred_df.iloc[0 : i + 1].mean(axis=0)
         else:
-            alpha = 2 / (k + 1)
+            alpha = 2 / (cfg["k"] + 1)
             row = row * alpha + prev_row * (1 - alpha)
         signals.loc[date] = row
         prev_row = row
@@ -35,8 +33,6 @@ def generate_daily_signal(
 def get_daily_signals(
     cfg: dict,
     result_dir: str,
-    k: int,
-    cash_quantile: float,
     *,
     start_date=None,
     end_date=None,
@@ -46,9 +42,7 @@ def get_daily_signals(
         print(f"Processing {dir}...")
         pred_df = pd.read_csv(f"{result_dir}/{dir}/test/pred_pct.csv", index_col=0)
         val_df = pd.read_csv(f"{result_dir}/{dir}/train_val/pred_pct.csv", index_col=0)
-        _signals = generate_daily_signal(
-            cfg, pred_df, val_df=val_df, k=k, cash_quantile=cash_quantile
-        )
+        _signals = generate_daily_signal(cfg, pred_df, val_df=val_df)
         signals = (
             pd.concat([signals, _signals], axis=0) if not signals.empty else _signals
         )
@@ -64,10 +58,6 @@ def get_daily_signals(
 def get_daily_result(
     cfg: dict,
     result_dir: str,
-    k: int = 15,
-    cash_quantile: float = 0.25,
-    T: float = 0.5,
-    normalize: bool = True,
     *,
     start_date=None,
     end_date=None,
@@ -75,8 +65,6 @@ def get_daily_result(
     buy_signals = get_daily_signals(
         cfg,
         result_dir,
-        k=k,
-        cash_quantile=cash_quantile,
         start_date=start_date,
         end_date=end_date,
     )
@@ -95,9 +83,9 @@ def get_daily_result(
         commission=cfg["commission"],
         tax=cfg["tax"],
         cash=1e9,
-        T=T,
+        T=cfg["T"],
         freq="D",
-        normalize=normalize,
+        normalize=cfg["normalize"],
     )
     result = backtest.run(buy_signal=buy_signals)
     benchmark_result = get_equal_weight_baseline_result(
@@ -113,10 +101,6 @@ def get_daily_result(
 def get_daily_metrics(
     cfg: dict,
     result_dir: str,
-    k: int,
-    cash_quantile: float,
-    T: float,
-    normalize: bool = True,
     start_date=None,
     end_date=None,
 ):
@@ -131,10 +115,6 @@ def get_daily_metrics(
     result = get_daily_result(
         cfg,
         result_dir,
-        k=k,
-        cash_quantile=cash_quantile,
-        T=T,
-        normalize=normalize,
         start_date=start_date,
         end_date=end_date,
     )
@@ -185,10 +165,6 @@ if __name__ == "__main__":
     result = get_daily_result(
         cfg,
         result_dir,
-        k=30,
-        cash_quantile=0.5,
-        T=0.5,
-        normalize=True,
         start_date=start_date,
         end_date=end_date,
     )

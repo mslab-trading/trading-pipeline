@@ -6,7 +6,6 @@ conda install -c conda-forge ta-lib
 pip install TA-Lib
 """
 
-
 import finlab
 from finlab import data
 import pandas as pd
@@ -19,7 +18,7 @@ BROKER_PATH = "raw/broker/"
 GLOBAL_PATH = "raw/global/"
 MARKET_PATH = "raw/market/"
 
-universe_market = "TSE"
+universe_market = ["TSE", "ETF"]
 
 market_features = [
     "etl:adj_close",
@@ -31,8 +30,10 @@ market_features = [
     "foreign_investors_shareholding:全體外資及陸資持股比率",
     "institutional_investors_trading_summary:外陸資買賣超股數(不含外資自營商)",
     "institutional_investors_trading_summary:外資自營商買賣超股數",
+    # "institutional_investors_trading_summary:投信買賣超股數",
     "institutional_investors_trading_summary:自營商買賣超股數(自行買賣)",
     "institutional_investors_trading_summary:自營商買賣超股數(避險)",
+    # "tw_news_cnyes"
 ]
 technical_indicators = [
     "RSI",
@@ -47,11 +48,26 @@ technical_indicators = [
 
 
 def get_market_dfs():
+    def get_news_df():
+        news = data.get('tw_news_cnyes')
+        news.date = news.date.dt.date
+
+        breakpoint()
+
+        df = news[['date', 'stock_ids']].copy()
+        df['stock_ids'] = df['stock_ids'].str.split(',')
+        df = df.explode('stock_ids')
+        news_df = pd.crosstab(df['date'], df['stock_ids'])
+        return news_df
+    
     print("Fetching market features...")
     market_dfs = {}
     with data.universe(universe_market):
         for market_feature in tqdm(market_features):
-            market_dfs[market_feature] = data.get(market_feature)
+            if market_feature == "tw_news_cnyes":
+                market_dfs[market_feature] = get_news_df()
+            else:
+                market_dfs[market_feature] = data.get(market_feature)
 
     return market_dfs
 
@@ -84,15 +100,14 @@ def fetch_broker_data():
     print("Fetching broker transactions data...")
     with data.universe(universe_market):
         broker_transactions = data.get("broker_transactions")  # takes about 5 minutes
-    stock_list = broker_transactions["stock_id"].unique().tolist()
 
     os.makedirs(BROKER_PATH, exist_ok=True)
     print("Saving broker data...")
-    for stock in tqdm(stock_list):
-        sub_df = broker_transactions[broker_transactions["stock_id"] == stock]
-        sub_df = sub_df[["date", "broker", "buy", "sell"]]
-        sub_df = sub_df.sort_values(by="date")
-        sub_df.to_csv(f"{BROKER_PATH}/{stock}.csv", index=False)
+    grouped_by_stock = broker_transactions.groupby("stock_id")
+    for stock_id, group_df in tqdm(grouped_by_stock):
+        group_df = group_df[["date", "broker", "buy", "sell"]]
+        group_df = group_df.sort_values(by="date")
+        group_df.to_csv(f"{BROKER_PATH}/{stock_id}.csv", index=False)
 
 
 def fetch_global_data():
@@ -128,7 +143,9 @@ def fetch_market_data():
 
     print("Saving market data...")
     for stock in tqdm(stock_list):
-        stock_df = pd.DataFrame(index=dates, columns=market_features + technical_indicators)
+        stock_df = pd.DataFrame(
+            index=dates, columns=market_features + technical_indicators
+        )
         for market_feature in market_features:
             if stock not in market_dfs[market_feature].columns:
                 break
@@ -142,6 +159,7 @@ def fetch_market_data():
             print(f"[Warning] {stock} has no data after dropping NA. Skipping...")
             continue
         stock_df.to_csv(f"{MARKET_PATH}/{stock}.csv")
+
 
 def main():
     fetch_broker_data()

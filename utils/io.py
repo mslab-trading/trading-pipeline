@@ -12,7 +12,7 @@ from dateutil.relativedelta import relativedelta   # pip install python-dateutil
 def read_all_df(
     result_dir: str | Path,
     start_year: int = 2021,
-    end_year: int = 2024,
+    end_year: int = 2025,
     *,
     horizon: str = "pct",        # "pct" 或 "abs" 等，避免魔術字串
     val_years: int = 1           # 驗證集長度（年）
