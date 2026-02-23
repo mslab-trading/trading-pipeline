@@ -107,6 +107,7 @@ class Result:
     trades: List[Trade]
     open_positions: List[Position]
     invest_ratio: pd.Series
+    portfolio_value: pd.DataFrame
 
 class Strategy():
     """
@@ -317,6 +318,8 @@ class Strategy():
         self.invest_ratio: List[float] = []
         self.trades: List[Trade] = []
         self.open_positions: List[Position] = []
+        self.invest_ratio: List[float] = []
+        self.portfolio_value: List[Dict[str, float]] = []
 
         self.cumulative_return = self.cash
         self.assets_value = .0
@@ -447,12 +450,20 @@ class Strategy():
             self.assets_value = sum(position.current_value for position in self.open_positions)
             self.returns.append(self.cash + self.assets_value)
             self.invest_ratio.append(self.assets_value / (self.cash + self.assets_value) if (self.cash + self.assets_value) > 0 else 0)
+            portfolio_value = {}
+            for position in self.open_positions:
+                if position.symbol not in portfolio_value:
+                    portfolio_value[position.symbol] = 0
+                portfolio_value[position.symbol] += position.current_value
+            portfolio_value["cash"] = self.cash
+            self.portfolio_value.append(portfolio_value)
 
         return Result(
             returns=pd.Series(index=self.index, data=self.returns, dtype=float),
             trades=self.trades,
             open_positions=self.open_positions,
-            invest_ratio=pd.Series(index=self.index, data=self.invest_ratio, dtype=float)
+            invest_ratio=pd.Series(index=self.index, data=self.invest_ratio, dtype=float),
+            portfolio_value=pd.DataFrame(self.portfolio_value, index=self.index)
         )
 
 class PyramidBacktest:
