@@ -37,7 +37,7 @@ def get_gino_result(cfg: dict, result_dir: str, *, start_date=None, end_date=Non
     if start_date is not None:
         buy_dfs = buy_dfs[buy_dfs.index >= start_date.strftime("%Y-%m-%d")]
     if end_date is not None:
-        buy_dfs = buy_dfs[buy_dfs.index <= end_date.strftime("%Y-%m-%d")]
+        buy_dfs = buy_dfs[buy_dfs.index < end_date.strftime("%Y-%m-%d")]
     buy_dfs = buy_dfs.sort_index()
 
     Target = filter_bad_targets(list(buy_dfs.columns), cfg)
