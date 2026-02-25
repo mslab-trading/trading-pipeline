@@ -100,6 +100,7 @@ class Result:
     trades: List[Trade]
     stocks: Dict[str, StockHolding]
     invest_ratio: pd.Series
+    portfolio_value: pd.DataFrame = None
 
 
 class Strategy:
@@ -140,6 +141,7 @@ class Strategy:
 
         self.returns: List[float] = []
         self.invest_ratio: List[float] = []
+        self.portfolio_value: List[dict[str, float]] = []
         self.portfolio = Portfolio(cash=cash, stocks={})
         self.trades: List[Trade] = []
 
@@ -220,6 +222,9 @@ class Strategy:
         all_value = self.portfolio.total_realized_value + self.portfolio.cash
         self.invest_ratio.append(self.portfolio.total_realized_value / all_value)
         self.returns.append(all_value)
+        portfolio_value = { id: stock.realized_value for id, stock in self.portfolio.stocks.items() }
+        portfolio_value["cash"] = self.portfolio.cash
+        self.portfolio_value.append(portfolio_value)
 
     def sell_stock(self, symbol: str, price: float, quantity: float):
         if isnan(price) or price <= 0 or isnan(quantity) or quantity <= 0:
@@ -304,11 +309,13 @@ class Strategy:
 
         returns_series = pd.Series(self.returns, index=self.data.index)
         invest_ratio_series = pd.Series(self.invest_ratio, index=self.data.index)
+        portfolio_value_df = pd.DataFrame(self.portfolio_value, index=self.data.index)
         result = Result(
             returns=returns_series,
             trades=self.trades,
             stocks=self.portfolio.stocks,
             invest_ratio=invest_ratio_series,
+            portfolio_value=portfolio_value_df,
         )
         return result
 
