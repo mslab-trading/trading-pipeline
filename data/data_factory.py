@@ -3,8 +3,7 @@ import json
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from .data_loader import (Dataset_Abs, Dataset_Berlin, Dataset_Jerome,
-                          Dataset_Pct, Dataset_S3E)
+from .data_loader import (Dataset_Abs, Dataset_Pct, Dataset_S3E)
 from .data_reader import read_broker_data, read_global_data, read_market_data
 from .data_dates import trading_cbday
 
@@ -95,16 +94,6 @@ def data_provider(args, flag, isS3E=False):
             goal=args.goal,
             log=args.log,
             thresh=args.thresh,
-        )
-    
-    # TODO: jerome
-    elif args.data == 'Dataset_Jerome':
-        data_set = Dataset_Jerome(
-        )
-    
-    # TODO: berlin
-    elif args.data == 'Dataset_Berlin':
-        data_set = Dataset_Berlin(
         )
         
     else:
