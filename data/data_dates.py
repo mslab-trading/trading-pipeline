@@ -45,11 +45,11 @@ def get_next_trading_date_str():
     next_trading_days = trading_days[trading_days > today]
     if next_trading_days.empty:
         return None
-    return next_trading_days.iloc[0].strftime("%Y-%m-%d")
+    return next_trading_days[0].strftime("%Y-%m-%d")
 
 def get_last_trading_date_str():
     today = pd.Timestamp.now().floor("D")
     past_trading_days = trading_days[trading_days < today]
     if past_trading_days.empty:
         return None
-    return past_trading_days.iloc[-1].strftime("%Y-%m-%d")
+    return past_trading_days[-1].strftime("%Y-%m-%d")
