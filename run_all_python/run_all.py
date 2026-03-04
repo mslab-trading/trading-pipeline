@@ -16,7 +16,7 @@ split_sets = [
 ]
 
 # 5 个 category
-categories = ['Top50', 'Top100', "Selected", "SelectedVer2"]
+categories = ['Top50', 'Top50_RAM', 'Top100']
 
 # [ 'Top50', 'Top100', 'BioMedTSE', 'ChemicalTSE', 'ElectronicComponentTSE', 'FinanceTSE', 'OptoTSE', "SemiconductorTSE",
 #                   "Selected", "SelectedVer2", "BuildingTSE", "CarTSE", "ClothesTSE", "NetworkTSE", "MetalTSE", "EETSE", "ComputerTSE"]
