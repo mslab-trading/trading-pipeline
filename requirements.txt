@@ -7,3 +7,4 @@ pyyaml
 scikit-learn
 yfinance
 quantstats
+streamlit
