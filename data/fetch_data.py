@@ -12,7 +12,8 @@ import pandas as pd
 import os
 from tqdm import tqdm
 
-finlab.login("ntSS3778pZi2FfkeYxXP0p+S0iI4AggkcphAUxh/lTVrWqT2FreKQsDkTA92CM7d#vip_m")
+finlab_token = os.getenv("FINLAB_API_KEY")
+finlab.login(finlab_token)
 
 BROKER_PATH = "raw/broker/"
 GLOBAL_PATH = "raw/global/"
@@ -52,7 +53,7 @@ def get_market_dfs():
         news = data.get('tw_news_cnyes')
         news.date = news.date.dt.date
 
-        breakpoint()
+        # breakpoint()
 
         df = news[['date', 'stock_ids']].copy()
         df['stock_ids'] = df['stock_ids'].str.split(',')

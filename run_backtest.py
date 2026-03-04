@@ -121,14 +121,18 @@ def save_results(output_dir: str, args: argparse.Namespace, config: Dict,
     
     # Write returns CSV
     returns_df = prepare_returns_dataframe(result["model"].returns, baseline_data)
+    returns_df.index.name = "date"
     returns_df.to_csv(f"{output_dir}/returns.csv")
     
     # Write trades CSV
     trades_df = pd.DataFrame(result["model"].trades)
+    trades_df.index.name = "id"
     trades_df.to_csv(f"{output_dir}/trades.csv")
     
     # Write portfolio value CSV
-    result["model"].portfolio_value.to_csv(f"{output_dir}/portfolio_value.csv")
+    portfolio_df = result["model"].portfolio_value
+    portfolio_df.index.name = "date"
+    portfolio_df.to_csv(f"{output_dir}/portfolio_value.csv")
 
 
 def main() -> None:

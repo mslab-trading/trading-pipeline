@@ -1,0 +1,9 @@
+numpy
+finlab
+torch
+pandas
+TA-Lib
+pyyaml
+scikit-learn
+yfinance
+quantstats

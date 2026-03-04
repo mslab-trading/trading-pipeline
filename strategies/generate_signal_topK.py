@@ -1,7 +1,5 @@
 from strategies.methods import allen_signal
-from strategies.methods import berlin_signal
 from strategies.methods import gino_signal
-from strategies.methods import jerome_signal
 import pandas as pd
 import yaml
 

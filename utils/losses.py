@@ -229,7 +229,3 @@ def masked_rank_loss(predictions: torch.Tensor,
 
     # 最後對每個樣本的 loss 取平均
     return torch.stack(losses).mean()
-
-# TODO: Berlin (寫 cross entropy loss)
-def masked_cross_entropy_loss(predictions, targets, mask):
-    raise NotImplementedError("Cross entropy loss is not implemented yet.")

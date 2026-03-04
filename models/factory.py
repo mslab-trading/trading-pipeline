@@ -1,13 +1,9 @@
 # models/factory.py
 from models.stock_attentioner import StockAttentioner
-from models.stock_jerome import StockJerome
-from models.stock_berlin import StockBerlin
 from models.base import BaseModel
 
 MODEL_REGISTRY = {
     "StockAttentioner": StockAttentioner,
-    "StockJerome": StockJerome,
-    "StockBerlin": StockBerlin,
 }
 
 def load_main_model(args, preprocessor_model=None):

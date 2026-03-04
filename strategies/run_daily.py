@@ -8,8 +8,8 @@ from strategies.utils.data_processor import filter_bad_targets, get_price_df
 from strategies.utils.analysis import get_equal_weight_baseline_result
 from evaluation.stats import sharpe, sharpe_0050
 
-finlab.login("ntSS3778pZi2FfkeYxXP0p+S0iI4AggkcphAUxh/lTVrWqT2FreKQsDkTA92CM7d#vip_m")
-
+finlab_token = os.getenv("FINLAB_API_KEY")
+finlab.login(finlab_token)
 
 def generate_daily_signal(cfg, pred_df: pd.DataFrame, val_df: pd.DataFrame):
     cash_pct = val_df.melt().value.quantile(cfg["cash_quantile"])
