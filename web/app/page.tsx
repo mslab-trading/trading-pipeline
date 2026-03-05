@@ -215,7 +215,7 @@ export default function Page() {
             </FormControl>
             <FormControl sx={{ minWidth: 220 }}>
               <InputLabel sx={{ color: muiTheme.palette.text.secondary }}>
-                Backtest
+                Strategy
               </InputLabel>
               <Select
                 value={selectedBacktest}
