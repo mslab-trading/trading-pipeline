@@ -1,11 +1,6 @@
 import os
 import subprocess
 
-import finlab
-
-finlab_token = os.getenv("FINLAB_API_KEY")
-finlab.login(finlab_token)
-
 for category in ["Top50", "Top50_RAM", "Top100"]:
     for backtest_type in ["allen", "gino", "daily"]:
         print(f">>> Running category={category}, backtest_type={backtest_type}")

@@ -48,6 +48,9 @@ for cat, splits in itertools.product(categories, split_sets):
                 with os.fdopen(fd, "w") as tmpf:
                     yaml.safe_dump(preprocessor_config, tmpf)
 
+                # Remove old results
+                subprocess.run(["rm", "-rf", f"results/{cfg['result_file_name']}", "20260101_*"])
+
                 print(f">>> Running splits={splits}, category={cat}")
 
                 env = os.environ.copy()
