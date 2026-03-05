@@ -105,6 +105,7 @@ def run_model():
 def run_backtest():
     print_log("Running backtest...")
     subprocess.run(["python3", "run_daily_python/run_backtest.py"])
+    subprocess.run(["python3", "run_daily_python/run_backtest_v2.py"])
     print_log("Backtest run complete.")
 
 def copy_backtest_results():
