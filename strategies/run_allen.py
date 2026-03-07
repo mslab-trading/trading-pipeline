@@ -1,24 +1,20 @@
-from finlab import data
-import finlab
-from pandas import MultiIndex
 import pandas as pd
-import json
 import yaml
 import os
-import numpy as np
-from strategies import generate_signal
 from strategies.backtest.allen import *
+from strategies.methods import allen_signal
 from strategies.utils.analysis import print_result
 from strategies.utils.data_processor import filter_bad_targets, get_price_df
 from strategies.utils.analysis import get_equal_weight_baseline_result
+
 
 def get_allen_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
     buy_dfs, sell_dfs = pd.DataFrame(), pd.DataFrame()
     for dir in os.listdir(result_dir):
         pred_df = pd.read_csv(os.path.join(result_dir, dir, "test/pred_pct.csv"), index_col="date")
         val_df = pd.read_csv(os.path.join(result_dir, dir, "train_val/pred_pct.csv"), index_col="date")
-        buy_dfs  = pd.concat([ buy_dfs, generate_signal.generate_buy_signal(cfg, pred_df, "allen", val_df)] , axis=0)
-        sell_dfs = pd.concat([sell_dfs, generate_signal.generate_sell_signal(cfg, pred_df, "allen", val_df)], axis=0)
+        buy_dfs  = pd.concat([ buy_dfs, allen_signal.get_buy_signals(pred_df, val_df, cfg)] , axis=0)
+        sell_dfs = pd.concat([sell_dfs, allen_signal.get_sell_signals(pred_df, val_df, cfg)], axis=0)
     
     if start_date is not None:
         buy_dfs  = buy_dfs[ buy_dfs.index >= start_date.strftime("%Y-%m-%d")]

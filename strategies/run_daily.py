@@ -64,7 +64,10 @@ def get_daily_signals(
 
     signals = compute_daily_signals(cfg, scores)
 
-    return signals
+    return {
+        "buy_signals": signals,
+        "sell_signals": None
+    }
 
 
 def get_daily_result(
@@ -74,12 +77,13 @@ def get_daily_result(
     start_date=None,
     end_date=None,
 ):
-    buy_signals = get_daily_signals(
+    signals = get_daily_signals(
         cfg,
         result_dir,
         start_date=start_date,
         end_date=end_date,
     )
+    buy_signals = signals["buy_signals"]
     stocks = buy_signals.columns.tolist()
     stocks.remove("cash")
     Target = filter_bad_targets(stocks, cfg)

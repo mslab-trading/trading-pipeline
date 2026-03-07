@@ -204,9 +204,6 @@ class Strategy():
                     self.close(position=position, price=record[(position.symbol,'Open')])
         ```
         """
-        
-        if i == 0:
-            return
             
         for position in self.open_positions[:]:
             if position.base_position_id != -1:
@@ -292,10 +289,10 @@ class Strategy():
         
         for symbol in self.symbols:
             # Check for a buy signal for the previous index
-            if i > len(self.buy_signal[symbol]):
+            if i >= len(self.buy_signal[symbol]):
                 break
             
-            if self.buy_signal[symbol][i - 1]:
+            if self.buy_signal[symbol][i]:
                 if len(self.open_positions) >= self.max_positions:
                     print(f"Exceeded maximum positions of {self.max_positions} at {self.index[i]} for symbol {symbol}!")
                     # print("Currently Opened Positions:")

@@ -1,19 +1,14 @@
-from finlab import data
-import finlab
-from pandas import MultiIndex
 import pandas as pd
-import json
 import yaml
 import os
-import numpy as np
-from strategies import generate_signal_topK
+from strategies.methods import gino_signal
 from strategies.backtest.pyramid import *
 from strategies.utils.analysis import print_result
 from strategies.utils.data_processor import filter_bad_targets, get_price_df
 from strategies.utils.analysis import get_equal_weight_baseline_result
 import math
 
-def get_gino_signals(cfg: dict, result_dir: str):
+def get_gino_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
     pred_df = None
     for dir in os.listdir(f'{result_dir}'):
         if pred_df is None:
@@ -22,8 +17,14 @@ def get_gino_signals(cfg: dict, result_dir: str):
             tmp = pd.read_csv(f'{result_dir}/{dir}/test/pred_pct.csv', index_col=0)
             pred_df = pd.concat([pred_df, tmp])
     pred_df = pred_df.groupby(['date']).tail(1)
+
+    if start_date is not None:
+        pred_df = pred_df[pred_df.index >= start_date.strftime("%Y-%m-%d")]
+    if end_date is not None:
+        pred_df = pred_df[pred_df.index < end_date.strftime("%Y-%m-%d")]
+    
     pred_df = pred_df.sort_index()
-    buy_signals = generate_signal_topK.generate_buy_signal(pred_df, 'gino')
+    buy_signals = gino_signal.get_buy_signals(pred_df)
     
     return {
         'buy_signals': buy_signals,
@@ -31,13 +32,8 @@ def get_gino_signals(cfg: dict, result_dir: str):
     }
 
 def get_gino_result(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
-    signals = get_gino_signals(cfg, result_dir)
+    signals = get_gino_signals(cfg, result_dir, start_date=start_date, end_date=end_date)
     buy_dfs = signals['buy_signals']
-
-    if start_date is not None:
-        buy_dfs = buy_dfs[buy_dfs.index >= start_date.strftime("%Y-%m-%d")]
-    if end_date is not None:
-        buy_dfs = buy_dfs[buy_dfs.index < end_date.strftime("%Y-%m-%d")]
     buy_dfs = buy_dfs.sort_index()
 
     Target = filter_bad_targets(list(buy_dfs.columns), cfg)
