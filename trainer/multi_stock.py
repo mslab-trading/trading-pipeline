@@ -162,9 +162,13 @@ class MultiStockTrainer:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         torch.save(self.model.state_dict(), path)
 
-    def load_checkpoint(self, path):
-        self.model.load_state_dict(torch.load(path))
+    def load_checkpoint(self, path) -> bool:
+        if path is None or not os.path.isfile(path):
+            return False
+        self.model.load_state_dict(torch.load(path, weights_only=True))
         self.model.to(self.device)
+        print("[INFO] Loaded checkpoint from", path, "successfully.")
+        return True
 
     def _evaluate_and_save(
         self,

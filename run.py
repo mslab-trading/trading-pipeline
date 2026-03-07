@@ -30,6 +30,8 @@ parser.add_argument('--config', '-c', type=str, required=True,
                     help="Path to the YAML config file")
 parser.add_argument('--preprocessor_config', '-p', type=str, default=None,
                     help="Path to the preprocessor YAML config file")
+parser.add_argument('--load_checkpoint', '-ckpt', action='store_true', default=False,
+                    help="Whether to load checkpoint")
 cli_args = parser.parse_args()
 
 # 2) 用參數取代硬編碼
@@ -115,6 +117,11 @@ trainer = MultiStockTrainer(
     device=device
 )
 
-best_epoch = trainer.train_with_early_stop()
-trainer.train_final(best_epoch)
+checkpoint_path = f"checkpoints/{args.result_file_name}/{','.join(args.split_dates)}.pt"
+if not cli_args.load_checkpoint or not trainer.load_checkpoint(checkpoint_path):
+    if cli_args.load_checkpoint:
+        print(f"[INFO] No checkpoint found at {checkpoint_path}, training from scratch.")
+    best_epoch = trainer.train_with_early_stop()
+    trainer.train_final(best_epoch)
+    trainer.save_checkpoint(checkpoint_path)
 trainer.evaluate_and_save(f"results/{args.result_file_name}")
