@@ -53,6 +53,8 @@ d_ff: 2048
 activation: 'gelu'
 task_name: 'pct_to_prev'
 make_dependent: 0
+label_len: 15
+
 
 # optimization
 num_workers: 4
