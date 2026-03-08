@@ -81,8 +81,9 @@ def get_signals(category, strategy):
 def output_planned_trades(tab, strategy: str, buy_signals: pd.DataFrame, sell_signals: pd.DataFrame | None):
     output_len = 5
     if strategy == "allen":
-        buy_signals = buy_signals.shift(-1, fill_value=False)
-        sell_signals = sell_signals.shift(-1, fill_value=False)
+        # Allen
+        tab.text("購買股票：model prediction > PR75 且 ADX > 40")
+        tab.text("賣出股票：model prediction < PR25")
         for i in range(output_len):
             with tab.container(border=True):
                 st.text(buy_signals.index[i].strftime('%Y-%m-%d:'))
@@ -91,6 +92,9 @@ def output_planned_trades(tab, strategy: str, buy_signals: pd.DataFrame, sell_si
                 st.text("")
         
     elif strategy == "gino":
+        # Gino:
+        tab.text("購買股票：model prediction Top1")
+        tab.text("賣出股票：放滿 30 天的股票")
         sell_signals = buy_signals.shift(-30, fill_value=False)
         for i in range(output_len):
             with tab.container(border=True):
@@ -99,6 +103,8 @@ def output_planned_trades(tab, strategy: str, buy_signals: pd.DataFrame, sell_si
                 st.text(f"Sell: {sell_signals.columns[sell_signals.iloc[i] == True].tolist()}")
 
     elif strategy == "daily":
+        # Daily:
+        tab.text("提供交易日收盤時的股票配置比例建議")
         buy_signals = buy_signals[buy_signals >= 0.02]
         buy_signals["cash"] = 1.0 - buy_signals.drop(columns=["cash"]).sum(axis=1)
         for i in range(output_len):
@@ -108,16 +114,6 @@ def output_planned_trades(tab, strategy: str, buy_signals: pd.DataFrame, sell_si
                 st.bar_chart(df, horizontal=True, height=150, stack=True)
                 st.write(df)
 
-
-# 購買股票：model prediction > PR75  且 ADX > 40，
-# 賣出股票：model prediction < PR25。
-
-# Gino:
-# 購買股票：model prediction Top1
-# 賣出股票：放滿 30 天的股票
-
-# Daily:
-# 提供交易日收盤時的股票配置比例建議
                                    
 
 # main
@@ -164,8 +160,8 @@ output_planned_trades(tab3, strategy, signals["buy_signals"], signals["sell_sign
 
 tab3.subheader("Raw Buy & Sell Signals")
 if signals["buy_signals"] is not None:
-    tab3.subheader("Buy Signals")
+    tab3.text("Buy Signals")
     tab3.dataframe(signals["buy_signals"], height=250, width='stretch')
 if signals["sell_signals"] is not None:
-    tab3.subheader("Sell Signals")
+    tab3.text("Sell Signals")
     tab3.dataframe(signals["sell_signals"], height=250, width='stretch')
