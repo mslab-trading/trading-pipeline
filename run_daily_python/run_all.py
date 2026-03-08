@@ -26,10 +26,28 @@ def run_model():
     subprocess.run(["python3", "run_daily_python/run_model.py"])
     print("Model run complete.")
 
+def run_signals():
+    print("Running backtest...")
+    subprocess.run(["python3", "run_daily_python/run_signals.py"])
+    print("Backtest run complete.")
+
+def run_backtest():
+    print("Running backtest...")
+    subprocess.run(["python3", "run_daily_python/run_backtest.py"])
+    subprocess.run(["python3", "run_daily_python/run_backtest_v2.py"])
+    print("Backtest run complete.")
+
+def copy_backtest_results():
+    print("Copying backtest results...")
+    subprocess.run(["cp", "-r", "results_backtest/", "web/"])
+    print("Backtest results copied.")
+
 
 def main():
     download_data()
     run_model()
+    run_backtest()
+    copy_backtest_results()
 
 if __name__ == "__main__":
     main()

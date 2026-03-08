@@ -80,4 +80,4 @@ The scripts in `run_all_python`.
 
 ## Backtest / Run Evaluation
 In `run_backtest.ipynb`, it will show the roi and invest ratio.
-In `run_backtest.py`, you can run backtest and output `returns`, `trades`, and ``
+In `run_backtest.py`, you can run backtest and output `returns`, `trades`, and `portfolio_value`.

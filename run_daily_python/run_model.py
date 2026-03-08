@@ -12,7 +12,7 @@ import itertools
 from data.data_dates import get_next_trading_date_str
 
 split_sets = [
-    ["2023-01-01", "2025-01-01", "2026-01-01", get_next_trading_date_str()]
+    ["2023-01-01", "2025-01-01", "2026-01-01", "2026-03-10"]
 ]
 
 # 5 个 category
@@ -49,7 +49,7 @@ for cat, splits in itertools.product(categories, split_sets):
                     yaml.safe_dump(preprocessor_config, tmpf)
 
                 # Remove old results
-                subprocess.run(["rm", "-rf", f"results/{cfg['result_file_name']}", "20260101_*"])
+                subprocess.run(["rm", "-rf", f"results/{cfg['result_file_name']}/20260101_*"])
 
                 print(f">>> Running splits={splits}, category={cat}")
 
@@ -59,6 +59,7 @@ for cat, splits in itertools.product(categories, split_sets):
                     [
                         "python",
                         "run.py",
+                        "--load_checkpoint",
                         "--config",
                         tmp_path,
                         # 如果需要 preprocessor_config，可以取消注釋

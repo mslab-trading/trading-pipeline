@@ -117,7 +117,7 @@ trainer = MultiStockTrainer(
     device=device
 )
 
-checkpoint_path = f"checkpoints/{args.result_file_name}/{','.join(args.split_dates)}.pt"
+checkpoint_path = f"checkpoints/{args.result_file_name}/{','.join(args.split_dates[:-1])}.pt"
 if not cli_args.load_checkpoint or not trainer.load_checkpoint(checkpoint_path):
     if cli_args.load_checkpoint:
         print(f"[INFO] No checkpoint found at {checkpoint_path}, training from scratch.")

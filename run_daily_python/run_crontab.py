@@ -81,7 +81,7 @@ def check_model_results():
 
 
 def check_backtest_results():
-    today = get_today_date_str()
+    today = pd.Timestamp.now().strftime("%Y-%m-%d")
     returns_path = f"results_backtest/Top100_daily/returns.csv"
     if not os.path.exists(returns_path):
         print_log(f"Backtest results file {returns_path} does not exist.")

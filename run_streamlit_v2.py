@@ -57,6 +57,69 @@ def get_simplified_portfolio_value(portfolio_value, top_n: int):
 
     return simplified_portfolio_value
 
+def get_signals(category, strategy):
+    buy_signals_path = f"results_backtest_v2/{category}_{strategy}/buy_signals.csv"
+    try:
+        buy_signals = pd.read_csv(buy_signals_path)
+        buy_signals.set_index("date", inplace=True)
+        buy_signals.index = pd.to_datetime(buy_signals.index)
+        buy_signals.sort_index(ascending=False, inplace=True)
+    except FileNotFoundError:
+        buy_signals = None
+
+    sell_signals_path = f"results_backtest_v2/{category}_{strategy}/sell_signals.csv"
+    try:
+        sell_signals = pd.read_csv(sell_signals_path)
+        sell_signals.set_index("date", inplace=True)
+        sell_signals.index = pd.to_datetime(sell_signals.index)
+        sell_signals.sort_index(ascending=False, inplace=True)
+    except FileNotFoundError:
+        sell_signals = None
+
+    return {"buy_signals": buy_signals, "sell_signals": sell_signals}
+
+def output_planned_trades(tab, strategy: str, buy_signals: pd.DataFrame, sell_signals: pd.DataFrame | None):
+    output_len = 5
+    if strategy == "allen":
+        buy_signals = buy_signals.shift(-1, fill_value=False)
+        sell_signals = sell_signals.shift(-1, fill_value=False)
+        for i in range(output_len):
+            with tab.container(border=True):
+                st.text(buy_signals.index[i].strftime('%Y-%m-%d:'))
+                st.text(f"Buy: {buy_signals.columns[buy_signals.iloc[i]].tolist()}")
+                st.text(f"Sell: {sell_signals.columns[sell_signals.iloc[i] == True].tolist()}")
+                st.text("")
+        
+    elif strategy == "gino":
+        sell_signals = buy_signals.shift(-30, fill_value=False)
+        for i in range(output_len):
+            with tab.container(border=True):
+                st.text(buy_signals.index[i].strftime('%Y-%m-%d:'))
+                st.text(f"Buy: {buy_signals.columns[buy_signals.iloc[i] == True].tolist()}")
+                st.text(f"Sell: {sell_signals.columns[sell_signals.iloc[i] == True].tolist()}")
+
+    elif strategy == "daily":
+        buy_signals = buy_signals[buy_signals >= 0.02]
+        buy_signals["cash"] = 1.0 - buy_signals.drop(columns=["cash"]).sum(axis=1)
+        for i in range(output_len):
+            with tab.container(border=True):
+                st.text(buy_signals.index[i].strftime('%Y-%m-%d:'))
+                df = buy_signals.loc[buy_signals.index[i]:buy_signals.index[i]]
+                st.bar_chart(df, horizontal=True, height=150, stack=True)
+                st.write(df)
+
+
+# 購買股票：model prediction > PR75  且 ADX > 40，
+# 賣出股票：model prediction < PR25。
+
+# Gino:
+# 購買股票：model prediction Top1
+# 賣出股票：放滿 30 天的股票
+
+# Daily:
+# 提供交易日收盤時的股票配置比例建議
+                                   
+
 # main
 st.write("Backtest Dashboard (Streamlit)")
 
@@ -73,7 +136,7 @@ with st.container(border=True):
     start_date, end_date = pd.to_datetime(start_date), pd.to_datetime(end_date)
 
 
-tab1, tab2, tab3 = st.tabs(["Returns", "Portfolio Chart", "Dataframe"])
+tab1, tab2, tab3 = st.tabs(["Returns", "Portfolio Chart", "Buy & Sell Signals"])
 
 # Tab 1
 returns = get_returns(category, strategy, start_date, end_date)
@@ -93,4 +156,16 @@ with tab2.container(border=True):
 tab2.area_chart(simplified_portfolio_value, stack=True)
 
 # Tab 3
-tab3.dataframe(returns, height=250, width='stretch')
+signals = get_signals(category, strategy)
+
+tab3.subheader("Planned Trades:")
+
+output_planned_trades(tab3, strategy, signals["buy_signals"], signals["sell_signals"])
+
+tab3.subheader("Raw Buy & Sell Signals")
+if signals["buy_signals"] is not None:
+    tab3.subheader("Buy Signals")
+    tab3.dataframe(signals["buy_signals"], height=250, width='stretch')
+if signals["sell_signals"] is not None:
+    tab3.subheader("Sell Signals")
+    tab3.dataframe(signals["sell_signals"], height=250, width='stretch')
