@@ -196,11 +196,11 @@ class Strategy():
         ```python
         def next(self, i, record):
             for symbol in self.symbols:
-                if self.buy_signal[symbol][i-1]:
+                if self.buy_signal[symbol][i]:
                     self.open(symbol=symbol, price=record[(symbol,'Open')], size=self.positionSize(record[(symbol,'Open')]))
 
             for position in self.open_positions[:]:
-                if self.sell_signal[position.symbol][i-1]:
+                if self.sell_signal[position.symbol][i]:
                     self.close(position=position, price=record[(position.symbol,'Open')])
         ```
         """

@@ -2,9 +2,30 @@
 
 import pandas as pd
 import os
-import numpy as np
-import tqdm
 import shutil
+import sys
+
+sys.path.append("..")
+
+from data.data_dates import get_next_trading_date, get_last_trading_date
+
+
+class DateConverter:
+    """The date between pipeline and model is different. Pipeline is 1 trading day forward by model.
+    This class aims to convert the date between the two environments.
+    """
+    @staticmethod
+    def pipeline_to_model(date: str):
+        "date format: YYYY-MM-DD"
+        date_obj = pd.to_datetime(date)
+        return get_last_trading_date(date_obj).strftime("%Y-%m-%d")
+
+    @staticmethod
+    def model_to_pipeline(date: str):
+        "date format: YYYY-MM-DD"
+        date_obj = pd.to_datetime(date)
+        return get_next_trading_date(date_obj).strftime("%Y-%m-%d")
+
 
 class RegressionSplitResult:
     """Sub-Class to handle regression result conversion between trading-pipeline and trading-model in a split.
@@ -60,6 +81,10 @@ class RegressionSplitResult:
         df.rename(columns={'true_pct': 'truth_pct'}, inplace=True)
         df['stock_id'] = df['stock_id'].astype(str)
 
+        unique_dates = df['date'].unique()
+        date_mapping = {date: DateConverter.model_to_pipeline(date) for date in unique_dates}
+        df['date'] = df['date'].map(date_mapping)
+
         self = RegressionSplitResult()
         self.data = df[["date", "stock_id", "pred_pct", "truth_pct"]]
 
@@ -96,6 +121,10 @@ class RegressionSplitResult:
         model_df = final_df[['stock_id', 'date', 'pred_pct', 'truth_pct']].copy()
         model_df.rename(columns={'truth_pct': 'true_pct', 'pred_pct': 'pred_pct'}, inplace=True)
 
+        unique_dates = model_df['date'].unique()
+        date_mapping = {date: DateConverter.pipeline_to_model(date) for date in unique_dates}
+        model_df['date'] = model_df['date'].map(date_mapping)
+        
         # Save to CSV
         model_df.to_csv(os.path.join(to_path, 'whole_output.csv'), index=False)
         # print(f"Transformed data saved to {to_path}/whole_output.csv")

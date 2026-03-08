@@ -172,17 +172,17 @@ class Strategy():
         ```python
         def next(self, i, record):
             for symbol in self.symbols:
-                if self.buy_signal[symbol][i-1]:
+                if self.buy_signal[symbol][i]:
                     self.open(symbol=symbol, price=record[(symbol,'Open')], size=self.positionSize(record[(symbol,'Open')]))
 
             for position in self.open_positions[:]:
-                if self.sell_signal[position.symbol][i-1]:
+                if self.sell_signal[position.symbol][i]:
                     self.close(position=position, price=record[(position.symbol,'Open')])
         ```
         """
         # benchmark : buy at 1st day and keep holding
         if (self.is_benchmark):
-            if i != 1:
+            if i != 0:
                 return
             for symbol in self.symbols:
                 if (symbol not in self.targets):
@@ -191,10 +191,7 @@ class Strategy():
                 self.open(symbol=symbol, price=record[(symbol,'Open')], size=size)
         # model: buy when buy signal occurs.  sell when sell signal occurs
         else:
-            if i == 0:
-                return
-            
-            if (i == 1):
+            if (i == 0):
                 for symbol in self.symbols:
                     if (symbol not in self.targets):
                         continue
@@ -208,7 +205,7 @@ class Strategy():
                     self.open(symbol=symbol, price=record[(symbol,'Open')], size=size)
             
             for position in self.open_positions[:]:
-                if self.sell_signal[position.symbol][i-1]:
+                if self.sell_signal[position.symbol][i]:
                     self.close(position=position, price=record[(position.symbol,'Open')], exit_reason="Low prediction")
                 #elif (record[(position.symbol,'Open')] < position.highest_price * 0.9):
                 #    self.close(position=position, price=record[(position.symbol,'Open')], exit_reason="Stop loss")
@@ -220,7 +217,7 @@ class Strategy():
                     break
                 if i > len(self.buy_signal[symbol]):
                     break
-                if self.buy_signal[symbol][i-1]:
+                if self.buy_signal[symbol][i]:
                     # size = int( self.cash / 10 / record[(symbol,'Open')] )
                     size = int( self.cash / (self.max_positions - len(self.open_positions)) / record[(symbol,'Open')] / (1 + self.commission) )
                     self.open(symbol=symbol, price=record[(symbol,'Open')], size=size)
