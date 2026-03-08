@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
+from data.data_dates import get_next_trading_date
 
 import warnings
 warnings.filterwarnings("ignore")
-import os
-import quantstats as qs
-import finlab
 
 #  Input: df of data of a stock
 # Output: series of its ADX
@@ -50,6 +48,11 @@ def get_ADX_df(Target, cfg):
     df_ADX = df_ADX.fillna(False)
     df_ADX.columns = Target
     df_ADX = df_ADX.sort_index()
+
+    unique_dates = df_ADX.index.unique()
+    date_mapping = {date: get_next_trading_date(date) for date in unique_dates}
+    df_ADX.index = df_ADX.index.map(date_mapping)
+
     return df_ADX
 
 def get_buy_signals(pred_df, val_df, cfg):

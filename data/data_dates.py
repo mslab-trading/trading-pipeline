@@ -2,6 +2,12 @@
 # Please update the holidays list and the start_date/end_date if you want to use it for other years.
 import pandas as pd
 import datetime
+import os
+import finlab
+from finlab import data
+
+finlab_token = os.getenv("FINLAB_API_KEY")
+finlab.login(finlab_token)
 
 # source: https://www.twse.com.tw/holidaySchedule/holidaySchedule?response=html
 holidays = [
@@ -32,24 +38,33 @@ trading_cbday = pd.offsets.CustomBusinessDay(
 )
 start_date = pd.Timestamp("2026-01-01")
 end_date = pd.Timestamp("2026-12-31")
-trading_days = pd.bdate_range(start_date, end_date, freq=trading_cbday)
+trading_dates_2026 = pd.bdate_range(start_date, end_date, freq=trading_cbday)
 
-def is_trading_day(date: pd.Timestamp) -> bool:
+def get_all_trading_dates():
+    trading_dates_historical = data.get("etl:adj_close").index
+    trading_dates = set(trading_dates_historical) | set(trading_dates_2026)
+    trading_dates = sorted(list(trading_dates))
+    trading_dates = pd.to_datetime(trading_dates)
+    return trading_dates
+
+trading_dates = get_all_trading_dates()
+
+def is_trading_date(date: pd.Timestamp) -> bool:
     date = date.floor("D") # only compare date, ignore time
-    return date in trading_days.values
-def get_today_date_str():
-    return pd.Timestamp.now().strftime("%Y-%m-%d")
+    return date in trading_dates.values
 
-def get_next_trading_date_str():
-    today = pd.Timestamp.now().floor("D")
-    next_trading_days = trading_days[trading_days > today]
+def get_next_trading_date(date: pd.Timestamp = None) -> pd.Timestamp:
+    if date is None:
+        date = pd.Timestamp.now().floor("D")
+    next_trading_days = trading_dates[trading_dates > date]
     if next_trading_days.empty:
         return None
-    return next_trading_days[0].strftime("%Y-%m-%d")
+    return next_trading_days[0]
 
-def get_last_trading_date_str():
-    today = pd.Timestamp.now().floor("D")
-    past_trading_days = trading_days[trading_days < today]
+def get_last_trading_date(date: pd.Timestamp = None) -> pd.Timestamp:
+    if date is None:
+        date = pd.Timestamp.now().floor("D")
+    past_trading_days = trading_dates[trading_dates < date]
     if past_trading_days.empty:
         return None
-    return past_trading_days[-1].strftime("%Y-%m-%d")
+    return past_trading_days[-1]
