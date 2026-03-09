@@ -14,20 +14,20 @@ interface ReturnRow {
   '0050'?: string;
 }
 
-export default function ReturnsChart({ category, backtest }: { category: string; backtest: string }) {
+export default function ReturnsChart({ model, category, backtest }: { model: string; category: string; backtest: string }) {
   const [returnData, setReturnData] = useState<ReturnRow[]>([]);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await loadReturnData(category, backtest);
+        const data = await loadReturnData(model, category, backtest);
         setReturnData(data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     }
     fetchData();
-  }, [category, backtest]);
+  }, [model, category, backtest]);
 
   const rows = returnData.filter((r) => r.model && r['2330'] && r['0050']);
 

@@ -63,7 +63,7 @@ def get_buy_signals(pred_df: pd.DataFrame, val_df: pd.DataFrame, cfg):
     thresholds = val_df.stack().quantile(cfg["buy_percentile"])
     return (pred_df > thresholds) & df_canbuy
 
-def get_sell_signals(pred_df: pd.DataFrame, val_df: pd.DataFrame, cfg):
+def get_sell_signals(pred_df, val_df, cfg):
     thresholds = val_df.stack().quantile(cfg["sell_percentile"])
     return pred_df < thresholds
 

@@ -15,10 +15,9 @@ import pandas as pd
 
 sys.path.append(os.path.join(os.getcwd()))
 from data.data_dates import (
-    get_last_trading_date_str,
-    get_next_trading_date_str,
-    get_today_date_str,
-    is_trading_day,
+    get_last_trading_date,
+    get_next_trading_date,
+    is_trading_date,
 )
 
 # fetch data + run model: 1 a.m.
@@ -43,25 +42,22 @@ def download_data():
 def check_data():
     market_data_path = "data/raw/market/2330.csv"
     broker_data_path = "data/raw/broker/2330.csv"
+    last_trading_date = get_last_trading_date().strftime("%Y-%m-%d")
 
     if not os.path.exists(market_data_path):
         print_log(f"Market data file {market_data_path} does not exist.")
         return False
     market_df = pd.read_csv(market_data_path)
-    if get_last_trading_date_str() not in market_df["date"].values:
-        print_log(
-            f"Last trading date {get_last_trading_date_str()} not in market data."
-        )
+    if last_trading_date not in market_df["date"].values:
+        print_log(f"Last trading date {last_trading_date} not in market data.")
         return False
 
     if not os.path.exists(broker_data_path):
         print_log(f"Broker data file {broker_data_path} does not exist.")
         return False
     broker_df = pd.read_csv(broker_data_path)
-    if get_last_trading_date_str() not in broker_df["date"].values:
-        print_log(
-            f"Last trading date {get_last_trading_date_str()} not in broker data."
-        )
+    if last_trading_date not in broker_df["date"].values:
+        print_log(f"Last trading date {last_trading_date} not in broker data.")
         return False
 
     print_log("Data check complete.")
@@ -69,9 +65,9 @@ def check_data():
 
 
 def check_model_results():
-    next_trading_date = get_next_trading_date_str().replace("-", "")
+    next_trading_date = get_next_trading_date().strftime("%Y-%m-%d").replace("-", "")
     model_results_path = (
-        f"results/Top100_Dataset_Abs/20260101_{next_trading_date}/test/pred_pct.csv"
+        f"results/BasicModel_Top100_Dataset_Abs/20260101_{next_trading_date}/test/pred_pct.csv"
     )
     if not os.path.exists(model_results_path):
         print_log(f"Model results file {model_results_path} does not exist.")
@@ -82,7 +78,7 @@ def check_model_results():
 
 def check_backtest_results():
     today = pd.Timestamp.now().strftime("%Y-%m-%d")
-    returns_path = f"results_backtest/Top100_daily/returns.csv"
+    returns_path = f"results_backtest_streamlit/BasicModel/Top100/daily/returns.csv"
     if not os.path.exists(returns_path):
         print_log(f"Backtest results file {returns_path} does not exist.")
         return False
@@ -97,15 +93,45 @@ def check_backtest_results():
 
 
 def run_model():
-    print_log("Running model...")
-    subprocess.run(["python3", "run_daily_python/run_model.py"])
-    print_log("Model run complete.")
+    def run_trading_pipeline_model():
+        print_log("Running trading-pipeline model...")
+        subprocess.run(["python3", "run_daily_python/run_model.py"])
+        print_log("Model run complete.")
+
+    def run_trading_model_model():
+        current_cwd = os.getcwd()
+        os.chdir(os.path.join(current_cwd, "../trading_competition"))
+
+        print_log("Fetching trading-model data...")
+        subprocess.run(["bash", "script/1_load_data.sh"])
+        print_log("Trading-model data fetched.")
+
+        print_log("Running trading-model model...")
+        subprocess.run(["bash", "script/4_test_all_model.sh"])
+        print_log("Trading-model model run complete.")
+
+        os.chdir(current_cwd)
+
+    def convert_model_results():
+        print_log("Converting model results...")
+        subprocess.run(["python3", "run_daily_python/convert_model_results.py"])
+        print_log("Model results converted.")
+
+    def run_signals():
+        print("Running backtest...")
+        subprocess.run(["python3", "run_daily_python/run_signals_streamlit.py"])
+        print("Backtest run complete.")
+
+    run_trading_pipeline_model()
+    run_trading_model_model()
+    convert_model_results()
+    run_signals()
 
 
 def run_backtest():
     print_log("Running backtest...")
     subprocess.run(["python3", "run_daily_python/run_backtest.py"])
-    subprocess.run(["python3", "run_daily_python/run_backtest_v2.py"])
+    subprocess.run(["python3", "run_daily_python/run_backtest_streamlit.py"])
     print_log("Backtest run complete.")
 
 def copy_backtest_results():
@@ -124,7 +150,7 @@ def print_log(message):
 
 def main():
     while True:
-        if is_trading_day(pd.Timestamp.now()):
+        if is_trading_date(pd.Timestamp.now()):
             if pd.Timestamp.now().hour >= 1:
                 # if is after 1 a.m.
                 while not check_data():

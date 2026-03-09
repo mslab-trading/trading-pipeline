@@ -19,12 +19,12 @@ split_sets = [
     # ["2019-01-01", "2021-01-01", "2022-01-01", "2023-01-01"],
     # ["2020-01-01", "2022-01-01", "2023-01-01", "2024-01-01"],
     # ["2021-01-01", "2023-01-01", "2024-01-01", "2025-01-01"],
-    # ["2022-01-01", "2024-01-01", "2025-01-01", "2026-01-01"]
-    ["2023-01-01", "2025-01-01", "2026-01-01", next_trading_date]
+    ["2022-01-01", "2024-01-01", "2025-01-01", "2026-01-01"],
+    # ["2023-01-01", "2025-01-01", "2026-01-01", next_trading_date]
 ]
 
 # 5 个 category
-categories = ["Top50", "Top50_RAM", "Top100"]
+categories = ["Top50_RAM"]
 
 # 载入 config
 with open("config/preprocessor_training.yaml") as f:
@@ -71,7 +71,7 @@ for model in ["StockAttentioner", "BasicModel"]:
                         [
                             "python",
                             "run.py",
-                            "--load_checkpoint",
+                            # "--load_checkpoint",
                             "--config",
                             tmp_path,
                             # 如果需要 preprocessor_config，可以取消注釋

@@ -3,12 +3,12 @@
 import { loadInfoData } from './server/data';
 import { useState, useEffect, use } from 'react';
 
-export default function InfoBox({category, backtest}: {category: string, backtest: string}) {
+export default function InfoBox({model, category, backtest}: {model: string, category: string, backtest: string}) {
   const [info, setInfo] = useState<string | null>(null);
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await loadInfoData(category, backtest);
+        const data = await loadInfoData(model, category, backtest);
         setInfo(data);
       }
       catch (error) {
@@ -16,7 +16,7 @@ export default function InfoBox({category, backtest}: {category: string, backtes
       }
     }
     fetchData();
-  }, [category, backtest]);
+  }, [model, category, backtest]);
 
   return (
     <>

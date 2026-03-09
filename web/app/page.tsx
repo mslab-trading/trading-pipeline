@@ -12,7 +12,14 @@ import PortfolioPieChart from '@/components/PortfolioPieChart';
 import ReturnsChart from '@/components/ReturnsChart';
 import TradesTable from '@/components/TradesTable';
 
-const MODELS = ['trading-pipeline']
+const MODELS = ['StockAttentioner', 'BasicModel', 'iTransformer']
+const MODEL_MAPPINGS = new Map<string, string>([
+  ["StockAttentioner", "StockAttentioner (trading-pipeline)"],
+  ["BasicModel", "iTransformer (trading-pipeline)"],
+  ["iTransformer", "iTransformer (trading-model)"],
+]);
+
+
 const CATEGORIES = ['Top50', 'Top100', 'Top50_RAM'];
 const BACKTESTS = ['allen', 'daily', 'gino'];
 
@@ -22,9 +29,9 @@ export default function Page() {
   const muiTheme = useMuiTheme();
   const { darkMode, toggleDarkMode } = useTheme();
 
-  const model = searchParams.get('model') || 'trading-pipeline';
-  const category = searchParams.get('category') || 'Top50';
-  const backtest = searchParams.get('backtest') || 'allen';
+  const model = searchParams.get('model') || MODELS[0];
+  const category = searchParams.get('category') || CATEGORIES[0];
+  const backtest = searchParams.get('backtest') || BACKTESTS[0];
 
   const [selectedModel, setSelectedModel] = useState(model);
   const [selectedCategory, setSelectedCategory] = useState(category);
@@ -183,11 +190,10 @@ export default function Page() {
                   color: 'text.primary',
                   backgroundColor: muiTheme.palette.background.paper,
                 }}
-                disabled
               >
-                {MODELS.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
+                {MODELS.map((m) => (
+                  <MenuItem key={m} value={m}>
+                    {MODEL_MAPPINGS.get(m) || m}
                   </MenuItem>
                 ))}
               </Select>
@@ -259,7 +265,7 @@ export default function Page() {
           >
             Returns Chart
           </Typography>
-          <ReturnsChart category={category} backtest={backtest} />
+          <ReturnsChart model={model} category={category} backtest={backtest} />
         </Box>
 
         {/* Layout: Portfolio Chart and Composition side-by-side on right */}
@@ -302,7 +308,7 @@ export default function Page() {
             />
           </Box>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <PortfolioChart category={category} backtest={backtest} topN={topN} setSelectedDate={(d: Date) => setSelectedDate(d)} />
+            <PortfolioChart model={model} category={category} backtest={backtest} topN={topN} setSelectedDate={(d: Date) => setSelectedDate(d)} />
             <Box
               sx={{
                 flex: 1,
@@ -323,7 +329,7 @@ export default function Page() {
                       day: 'numeric',
                     }).format(selectedDate)}
                   </>}
-                <PortfolioPieChart category={category} backtest={backtest} topN={topN} selectedDate={selectedDate} setSelectedDate={(d: Date) => setSelectedDate(d)} />
+                <PortfolioPieChart model={model} category={category} backtest={backtest} topN={topN} selectedDate={selectedDate} setSelectedDate={(d: Date) => setSelectedDate(d)} />
               </div>
             </Box>
           </div>
@@ -352,7 +358,7 @@ export default function Page() {
           >
             Trades
           </Typography>
-          <TradesTable category={category} backtest={backtest} />
+          <TradesTable model={model} category={category} backtest={backtest} />
         </Box>
       </div>
     </Box>

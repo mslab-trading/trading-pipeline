@@ -204,14 +204,14 @@ class Strategy():
                     self.close(position=position, price=record[(position.symbol,'Open')])
         ```
         """
-        
-        print("Running Close")
+
+        print("Running Open")
             
         for position in self.open_positions[:]:
             if position.base_position_id != -1:
                 continue
 
-            current_price = record[(position.symbol, 'Close')]
+            current_price = record[(position.symbol, 'Open')]
 
             # 更新停損價格（trailing stop loss）
             if current_price <= position.stop_loss_price:
@@ -234,7 +234,7 @@ class Strategy():
                 # 找同一symbol其他持倉，且價格已有一定漲幅 (>1.5倍)
                 other_positions = [
                     p for p in self.open_positions
-                    if not p.has_extended_once and p.symbol == position.symbol and p != position and record[(p.symbol, 'Close')] >= p.open_price * 1.4 and p.open_price > position.open_price
+                    if not p.has_extended_once and p.symbol == position.symbol and p != position and record[(p.symbol, 'Open')] >= p.open_price * 1.4 and p.open_price > position.open_price
                 ]
                 if len(other_positions) > 0:
                     # 取這些持倉中停利目標較高的（這裡用1.5為例）
@@ -272,7 +272,7 @@ class Strategy():
         for position in self.open_positions[:]:
             if position.base_position_id != -1:
                 continue
-            current_price = record[(position.symbol, 'Close')]
+            current_price = record[(position.symbol, 'Open')]
             if len(self.open_positions) < self.max_positions * 0.7 and position.pyramid_add_level < 1:  # 最多加倉 1 次
                 target_price = position.open_price * (1 + 0.1 * (position.pyramid_add_level + 1))  # 每次加碼 +10%
                 if current_price >= target_price:
@@ -300,7 +300,7 @@ class Strategy():
                     # print("Currently Opened Positions:")
                     # print(self.open_positions)
                 else:
-                    self.open(symbol=symbol, price=record[(symbol, 'Close')], size=self.positionSize(record[(symbol, 'Close')])) 
+                    self.open(symbol=symbol, price=record[(symbol, 'Open')], size=self.positionSize(record[(symbol, 'Open')])) 
 
     def __init__(self):
         self.data = pd.DataFrame()
@@ -442,7 +442,7 @@ class Strategy():
             self.next(i, record)
 
             for position in self.open_positions:
-                last_price = record[(position.symbol, 'Close')] if (position.symbol, 'Close') in record else record['Close']
+                last_price = record[(position.symbol, 'Open')] if (position.symbol, 'Open') in record else record['Open']
                 if last_price > 0:
                     position.update(last_date=self.date, last_price=last_price)
 

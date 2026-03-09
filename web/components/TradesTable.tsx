@@ -11,7 +11,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { loadTradesData } from "./server/data"
 
 
-export default function TradesTable({ category, backtest }: { category: string, backtest: string }) {
+export default function TradesTable({ model, category, backtest }: { model: string, category: string, backtest: string }) {
     const [trades, setTrades] = useState<any[]>([]);
     const [mounted, setMounted] = useState(false);
 
@@ -19,7 +19,7 @@ export default function TradesTable({ category, backtest }: { category: string, 
         let active = true;
         async function fetchData() {
             try {
-                const data = await loadTradesData(category, backtest);
+                const data = await loadTradesData(model, category, backtest);
                 if (active) {
                     setTrades(data);
                 }
@@ -33,7 +33,7 @@ export default function TradesTable({ category, backtest }: { category: string, 
         return () => {
             active = false;
         };
-    }, [category, backtest]);
+    }, [model, category, backtest]);
 
     useEffect(() => {
         setMounted(true);

@@ -1,5 +1,6 @@
 from strategies.run_allen import get_allen_result, get_allen_signals
 from strategies.run_gino import get_gino_result, get_gino_signals
+from strategies.run_gino_open import get_gino_open_result, get_gino_open_signals
 from strategies.run_daily import get_daily_result, get_daily_signals
 
 
@@ -11,6 +12,10 @@ def get_result(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
         )
     elif backtest_type == "gino":
         return get_gino_result(
+            cfg, result_dir, start_date=start_date, end_date=end_date
+        )
+    elif backtest_type == "gino_open":
+        return get_gino_open_result(
             cfg, result_dir, start_date=start_date, end_date=end_date
         )
     elif backtest_type == "daily":
@@ -29,6 +34,10 @@ def get_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
         )
     elif backtest_type == "gino":
         return get_gino_signals(
+            cfg, result_dir, start_date=start_date, end_date=end_date
+        )
+    elif backtest_type == "gino_open":
+        return get_gino_open_signals(
             cfg, result_dir, start_date=start_date, end_date=end_date
         )
     elif backtest_type == "daily":

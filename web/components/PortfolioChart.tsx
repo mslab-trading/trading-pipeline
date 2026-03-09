@@ -7,21 +7,21 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import { loadPortfolioData } from './server/data';
 import { setDefaultAutoSelectFamily } from 'net';
 
-export default function PortfolioChart({ category, backtest, topN = 5, setSelectedDate }: { category: string; backtest: string; topN?: number; setSelectedDate: (d: Date) => void }) {
+export default function PortfolioChart({ model, category, backtest, topN = 5, setSelectedDate }: { model: string, category: string; backtest: string; topN?: number; setSelectedDate: (d: Date) => void }) {
   const [portfolioData, setPortfolioData] = useState<any[]>([]);
   const dates = portfolioData.map((row) => new Date(row.date));
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await loadPortfolioData(category, backtest);
+        const data = await loadPortfolioData(model, category, backtest);
         setPortfolioData(data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     }
     fetchData();
-  }, [category, backtest]);
+  }, [model, category, backtest]);
 
   console.log(portfolioData);
 

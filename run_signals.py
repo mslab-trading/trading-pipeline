@@ -76,10 +76,6 @@ def main() -> None:
     # Get Signals
     signals = get_signals(config, args.input_dir, start_date=start_date, end_date=end_date)
 
-    if args.backtest_type == "allen" or args.backtest_type == "gino":
-        signals["buy_signals"] = signals["buy_signals"].astype(bool)
-        signals["sell_signals"] = signals["sell_signals"].astype(bool)
-
     # Save all results
     save_results(args.output_dir, buy_signals=signals["buy_signals"], sell_signals=signals["sell_signals"])
 

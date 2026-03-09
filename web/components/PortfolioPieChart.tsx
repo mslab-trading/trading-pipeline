@@ -6,14 +6,14 @@ import { loadPortfolioData } from './server/data';
 import { Slider, Box, Typography } from '@mui/material';
 import { PieChart } from '@mui/x-charts';
 
-export default function PortfolioPieChart({ category, backtest, topN, selectedDate, setSelectedDate }: { category: string; backtest: string; topN: number; selectedDate?: Date | null; setSelectedDate: (d: Date) => void}) {
+export default function PortfolioPieChart({ model, category, backtest, topN, selectedDate, setSelectedDate }: { model: string; category: string; backtest: string; topN: number; selectedDate?: Date | null; setSelectedDate: (d: Date) => void}) {
     const [portfolioData, setPortfolioData] = useState<any[]>([]);
 
     useEffect(() => {
         let active = true;
         async function fetchData() {
             try {
-                const data = await loadPortfolioData(category, backtest);
+                const data = await loadPortfolioData(model, category, backtest);
                 if (active) {
                     setPortfolioData(data);
                     setSelectedDate(new Date(data[data.length - 1].date));
@@ -28,7 +28,7 @@ export default function PortfolioPieChart({ category, backtest, topN, selectedDa
         return () => {
             active = false;
         };
-    }, [category, backtest]);
+    }, [model, category, backtest]);
 
     const selectedPortfolio = selectedDate
         ? portfolioData.find(row => new Date(row.date).getTime() === selectedDate.getTime())

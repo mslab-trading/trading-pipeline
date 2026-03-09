@@ -2,13 +2,13 @@ import pandas as pd
 import yaml
 import os
 from strategies.methods import gino_signal
-from strategies.backtest.pyramid import *
+from strategies.backtest.pyramid_open import *
 from strategies.utils.analysis import print_result
 from strategies.utils.data_processor import filter_bad_targets, get_price_df
 from strategies.utils.analysis import get_equal_weight_baseline_result
 import math
 
-def get_gino_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
+def get_gino_open_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
     pred_df = None
     for dir in os.listdir(f'{result_dir}'):
         if pred_df is None:
@@ -32,8 +32,8 @@ def get_gino_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=No
         'sell_signals': pd.DataFrame(index=buy_signals.index, columns=buy_signals.columns, data=False),
     }
 
-def get_gino_result(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
-    signals = get_gino_signals(cfg, result_dir, start_date=start_date, end_date=end_date)
+def get_gino_open_result(cfg: dict, result_dir: str, *, start_date=None, end_date=None):
+    signals = get_gino_open_signals(cfg, result_dir, start_date=start_date, end_date=end_date)
     buy_dfs = signals['buy_signals']
     buy_dfs = buy_dfs.sort_index()
 
