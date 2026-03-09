@@ -31,6 +31,9 @@ def get_allen_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=N
     
     buy_dfs = buy_dfs.loc[~buy_dfs.index.duplicated(keep='last')]
     sell_dfs = sell_dfs.loc[~sell_dfs.index.duplicated(keep='last')]
+
+    buy_dfs.fillna(False, inplace=True)
+    sell_dfs.fillna(False, inplace=True)
     
     return {
         'buy_signals': buy_dfs,

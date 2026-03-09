@@ -25,6 +25,7 @@ def get_gino_signals(cfg: dict, result_dir: str, *, start_date=None, end_date=No
     
     pred_df = pred_df.sort_index()
     buy_signals = gino_signal.get_buy_signals(pred_df)
+    buy_signals.fillna(False, inplace=True)
     
     return {
         'buy_signals': buy_signals,

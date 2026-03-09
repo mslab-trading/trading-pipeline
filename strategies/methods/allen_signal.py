@@ -7,7 +7,7 @@ warnings.filterwarnings("ignore")
 
 #  Input: df of data of a stock
 # Output: series of its ADX
-def calculate_adx(df, period=14):
+def calculate_adx(df: pd.DataFrame, period=14):
     # 計算 TR (True Range)
     df['high_low'] = df['etl:adj_high'] - df['etl:adj_low']
     df['high_close'] = abs(df['etl:adj_high'] - df['etl:adj_close'].shift(1))
@@ -55,15 +55,15 @@ def get_ADX_df(Target, cfg):
 
     return df_ADX
 
-def get_buy_signals(pred_df, val_df, cfg):
+def get_buy_signals(pred_df: pd.DataFrame, val_df: pd.DataFrame, cfg):
     Target = pred_df.columns
     df_ADX = get_ADX_df(Target, cfg)
     df_canbuy = df_ADX > cfg["ADX_threshold"]
     df_canbuy = df_canbuy.reindex(index=pred_df.index, columns=pred_df.columns, fill_value=False)
-    thresholds = val_df.quantile(cfg["buy_percentile"])
+    thresholds = val_df.stack().quantile(cfg["buy_percentile"])
     return (pred_df > thresholds) & df_canbuy
 
-def get_sell_signals(pred_df, val_df, cfg):
-    thresholds = val_df.quantile(cfg["sell_percentile"])
+def get_sell_signals(pred_df: pd.DataFrame, val_df: pd.DataFrame, cfg):
+    thresholds = val_df.stack().quantile(cfg["sell_percentile"])
     return pred_df < thresholds
 
