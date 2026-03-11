@@ -23,7 +23,7 @@ def filter_bad_targets(Target, cfg):
 #  Input: Given Target = [stock ids]
 # Output: df with the format for backtest
 def get_price_df(Target):
-    open = data.get('etl:adj_close')[Target]
+    open = data.get('etl:adj_open')[Target]
     close = data.get('etl:adj_close')[Target]
     
     close = pd.DataFrame(close)
