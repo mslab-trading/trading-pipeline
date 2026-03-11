@@ -19,7 +19,7 @@ def read_market_data(
     
     if market_features:
         market_features += ['date', 'stock_id']  # Ensure 'date' and 'stock_id' are included
-        market_features = list(set(market_features))  # Remove duplicates
+        market_features = list(dict.fromkeys(market_features)) # Remove duplicates
         missing_features = [feat for feat in market_features if feat not in market_df.columns]
         if missing_features:
             raise ValueError(f"The following market features are missing: {missing_features}")
