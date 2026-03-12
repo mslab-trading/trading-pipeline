@@ -4,8 +4,6 @@ import sys
 
 sys.path.append(os.path.join(os.getcwd()))
 
-from data.data_dates import get_next_trading_date
-
 
 # 4 种 split 设置
 import subprocess, yaml, tempfile, os, sys
@@ -13,14 +11,13 @@ from time import sleep
 import pandas as pd
 import itertools
 
-next_trading_date = get_next_trading_date().strftime("%Y-%m-%d")
 split_sets = [
     # ["2018-01-01", "2020-01-01", "2021-01-01", "2022-01-01"],
     # ["2019-01-01", "2021-01-01", "2022-01-01", "2023-01-01"],
     # ["2020-01-01", "2022-01-01", "2023-01-01", "2024-01-01"],
     # ["2021-01-01", "2023-01-01", "2024-01-01", "2025-01-01"],
-    # ["2022-01-01", "2024-01-01", "2025-01-01", "2026-01-01"]
-    ["2023-01-01", "2025-01-01", "2026-01-01", next_trading_date]
+    # ["2022-01-01", "2024-01-01", "2025-01-01", "2026-01-01"],
+    ["2023-01-01", "2025-01-01", "2026-01-01", "2027-01-01"]
 ]
 
 # 5 个 category
