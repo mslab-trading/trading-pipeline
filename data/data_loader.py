@@ -110,7 +110,7 @@ class Dataset_Basic(Dataset):
             new_splits.append(self.all_dates[shifted_idx])
 
         
-        j3 = next(idx for idx, x in enumerate(self.all_dates) if x >= raw[3])
+        j3 = next((idx for idx, x in enumerate(self.all_dates) if x >= raw[3]), len(self.all_dates))
         # 往後推 pred_len，最多到列表末尾
         shifted_idx3 = min(len(self.all_dates) - 1, j3 + self.pred_len)
         new_splits.append(self.all_dates[shifted_idx3])

@@ -43,8 +43,8 @@ def data_provider(args, flag, isS3E=False):
 
     def fill_extended_days(market_df):
         # append pred_len days on market_df to avoid out-of-index
-        start_date = market_df['date'].max() + pd.tseries.offsets.BDay(1)
-        extended_dates = pd.bdate_range(start_date, periods=args.pred_len + 15, freq=trading_cbday) # extra 15 business days for safety
+        start_date = market_df['date'].max() + pd.tseries.offsets.Day(1)
+        extended_dates = pd.bdate_range(start_date, periods=args.pred_len + 2, freq=trading_cbday)
         extended_date_df = pd.DataFrame(extended_dates, columns=['date'])
         extended_stock_ids = market_df['stock_id'].unique()
         extended_stock_df = pd.DataFrame(extended_stock_ids, columns=['stock_id'])
